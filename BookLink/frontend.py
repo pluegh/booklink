@@ -58,10 +58,10 @@ def pair():
     if 'is_ereader' in request.args:
         # Only show code to enter on sender device
         return render_template(
-            'pair_for_ereader.html'
+            'simple_pair.html'
         )
 
     # Only ask to enter code of e-reader device
     return render_template(
-        'pair_for_sender_device.html',
+        'pair.html',
     )
