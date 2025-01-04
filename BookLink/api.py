@@ -27,7 +27,7 @@ def init_app(app):
         max_clients_in_pairing=app.config['MAX_CLIENTS_IN_PAIRING'],
     )
 
-def handle_client_auth(f):
+def auth_client(f):
     "Authenticate client token for the route and store the client in g"
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -40,12 +40,8 @@ def handle_client_auth(f):
             return 'Invalid token', 401
         client = Client(**payload)
         g.authenticated_client = client
-        return f(*args, **kwargs)
+        return f(client, *args, **kwargs)
     return decorator
-
-def current_auth_client():
-    "Return the current client"
-    return g.get('authenticated_client')
 
 @bp.route('/new_client')
 def new_client():
@@ -58,10 +54,10 @@ def new_client():
     return jsonify({'client': add_token(client)})
 
 @bp.route('/pair/<pairing_code_ereader>')
-@handle_client_auth
-def pair_with_ereader(pairing_code_ereader):
+@auth_client
+def pair_with_ereader(client, pairing_code_ereader):
     "Pair two clients"
-    pairing_code_sender = current_auth_client().pairing_code
+    pairing_code_sender = client.pairing_code
     print(f'Pairing {pairing_code_sender} with {pairing_code_ereader}')
     print(f'Pairing register: {current_app.pairing_register.all_clients_in_pairing}')
     channel = current_app.pairing_register.new_channel(
@@ -88,15 +84,15 @@ def decode(token):
 #
 
 @bp.route('/channels_for_ereader')
-@handle_client_auth
-def channels_for_ereader():
+@auth_client
+def channels_for_ereader(client):
     "Return the results of pairings for a client"
-    pairing_code = current_auth_client().pairing_code
+    pairing_code = client.pairing_code
     channels = current_app.pairing_register.channels_for(pairing_code)
     # return channel_list_to_json(channels)
     return jsonify({'channels': [add_token(c) for c in channels]})
 
-def handle_channel_auth(f):
+def auth_channel(f):
     "Authenticate client token for the route and store the client in g"
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -106,9 +102,5 @@ def handle_channel_auth(f):
         payload = decode(token)
         channel = Channel(**payload)
         g.authenticated_channel = channel
-        return f(*args, **kwargs)
+        return f(channel, *args, **kwargs)
     return decorator
-
-def current_auth_channel():
-    "Return the current client"
-    return g.get('authenticated_channel')
