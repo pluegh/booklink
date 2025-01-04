@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="max-w-5xl mx-auto px-4 py-12">
+    <div class="max-w-md mx-auto">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold mb-4">Configure Device</h2>
+
+            <form action="{{ request.path }}" method="GET">
+                <div class="space-y-4">
+                    <div>
+                        <label for="friendly_name" class="block text-sm text-gray-600 mb-1">Device Name</label>
+                        <input type="text" 
+                               id="friendly_name" 
+                               name="friendly_name" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-gray-400" 
+                               required>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               id="is_ereader" 
+                               name="is_ereader" 
+                               {{ "checked" if is_ereader_preselection }}
+                               class="h-4 w-4 text-blue-500 rounded border-gray-300">
+                        <label for="is_ereader" class="ml-2 text-sm text-gray-600">This is an e-reader device</label>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none">
+                        Continue
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-4">
+                <a href="/" class="text-gray-600 hover:text-gray-900">Cancel</a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

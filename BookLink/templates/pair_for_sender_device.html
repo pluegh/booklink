@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="max-w-5xl mx-auto px-4 py-12">
+    <div class="max-w-md mx-auto">
+        <div class="bg-white border border-gray-300 rounded-lg p-8">
+            <div class="text-center mb-8">
+                <svg class="mx-auto h-16 w-16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+                
+                <h2 class="mt-6 text-2xl font-semibold">Connect to E-reader</h2>
+                <p class="mt-2 text-gray-600">Enter the code shown on your e-reader</p>
+            </div>
+
+            <form id="pairForm" class="space-y-6">
+                <div>
+                    <div class="bg-gray-100 border-2 border-gray-300 rounded-lg p-6">
+                        <input type="text" 
+                               id="pairingCode" 
+                               class="w-full bg-transparent text-4xl text-center font-mono tracking-[0.5em] border-none focus:outline-none focus:ring-0" 
+                               maxlength="6"
+                               placeholder="ABC0"
+                               required>
+                    </div>
+                </div>
+
+                <div id="statusContainer" class="text-center hidden">
+                    <div class="flex items-center justify-center space-x-2">
+                        <div id="statusDot" class="w-2 h-2 bg-gray-500 rounded-full"></div>
+                        <p id="statusText" class="text-sm text-gray-600">Connecting...</p>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        class="w-full px-6 py-3 bg-gray-900 text-white text-lg rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
+                    Connect
+                </button>
+            </form>
+            <div id="channelList" class="mt-6 space-y-2">test</div>
+
+            <div class="text-center mt-6">
+                <a href="/" class="text-gray-600 hover:text-gray-900">Cancel</a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function() {
+        var form = document.getElementById('pairForm');
+        var statusContainer = document.getElementById('statusContainer');
+        var statusDot = document.getElementById('statusDot');
+        var statusText = document.getElementById('statusText');
+        var submitButton = form.querySelector('button[type="submit"]');
+        var codeInput = document.getElementById('pairingCode');
+
+        var token = null;
+
+        function updateStatus(status, message) {
+            statusContainer.style.display = 'block';
+            
+            switch(status) {
+                case 'connecting':
+                    statusDot.className = 'w-2 h-2 bg-gray-500 rounded-full';
+                    statusText.textContent = 'Connecting...';
+                    break;
+                case 'success':
+                    statusDot.className = 'w-2 h-2 bg-green-500 rounded-full';
+                    statusText.textContent = 'Connected successfully!';
+                    break;
+                case 'error':
+                    statusDot.className = 'w-2 h-2 bg-red-500 rounded-full';
+                    statusText.textContent = message || 'Connection failed';
+                    break;
+            }
+        }
+
+        function fetchPairingCode() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/api/new_client', true);
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        token = response.client.token;
+                    } else {
+                        document.getElementById('pairingCode').textContent = 'Error';
+                        document.getElementById('statusText').textContent = 'Connection failed';
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    document.getElementById('pairingCode').textContent = 'Error';
+                    document.getElementById('statusText').textContent = 'Network error';
+                };
+                
+                xhr.send();
+            }
+        
+        function addChannelToDisplay(channel) {
+            var channelList = document.getElementById('channelList');
+            var channelItem = document.createElement('li');
+            channelItem.textContent = channel.channel_id;
+            channelList.appendChild(channelItem);
+        }
+
+        form.onsubmit = function(e) {
+            e.preventDefault();
+            submitButton.disabled = true;
+
+            var xhr = new XMLHttpRequest();
+            var route = '/api/pair/' + codeInput.value + '?token=' + token;
+            xhr.open('GET', route, true);
+            console.log(route);
+            
+            xhr.onload = function() {
+                console.log(xhr)
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    console.log(response);
+                    updateStatus('success');
+                    addChannelToDisplay(response.channel);
+                } else {
+                    updateStatus('error', 'Invalid code or connection failed');
+                    submitButton.disabled = false;
+                }
+            };
+            
+            xhr.onerror = function() {
+                updateStatus('error', 'Network error');
+                submitButton.disabled = false;
+            };
+
+            xhr.send();
+        };
+
+        // Auto format input
+        codeInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        fetchPairingCode();
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BookLink{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .view { display: none; }
+        .view.active { display: block; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow w-full">
+        <table class="w-full max-w-5xl mx-auto">
+            <tr>
+                <td class="py-4 px-4">
+                    <table class="inline-block align-middle">
+                        <tr>
+                            <td class="align-middle pr-2" style="vertical-align: middle;">
+                                <svg class="h-8 w-8 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                            </td>
+                            <td class="align-middle" style="vertical-align: middle;">
+                                <h1 class="text-2xl font-bold text-gray-900">BookLink</h1>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td class="py-4 px-4 text-right align-middle" style="vertical-align: middle;">
+                    <!-- <p>xoxo</p> -->
+                </td>
+            </tr>
+        </table>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0; font-family: sans-serif; }
+        .content-table {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border-spacing: 0;
+        }
+        .main-content { text-align: center; padding: 40px 20px; }
+        .title {
+            font-size: 32px;
+            font-weight: normal;
+            margin: 20px 0;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        .code-box {
+            background: white;
+            border: 1px solid black;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 30px auto;
+            max-width: 300px;
+            font-size: 40px;
+            letter-spacing: 10px;
+        }
+        .status {
+            color: #666;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: black;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <table class="content-table">
+        <tr>
+            <td colspan="2" class="main-content">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+                <h2 class="mt-6 text-2xl font-semibold">BookLink Connect</h1>
+                <p class="subtitle">Use this code on your sending device</p>
+                <div class="code-box" id="pairingCode">Loading...</div>
+                <p class="status">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Waiting for connection...</span>
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    <script>
+        (function() {
+            var token = null;
+            var POLL_INTERVAL = 3000;
+
+            function fetchPairingCode() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/api/new_client', true);
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        document.getElementById('pairingCode').textContent = response.client.pairing_code.toUpperCase();
+                        token = response.client.token;
+                        startPolling();
+                    } else {
+                        document.getElementById('pairingCode').textContent = 'Error';
+                        document.getElementById('statusText').textContent = 'Connection failed';
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    document.getElementById('pairingCode').textContent = 'Error';
+                    document.getElementById('statusText').textContent = 'Network error';
+                };
+                
+                xhr.send();
+            }
+
+            function checkPairingStatus() {
+                if (!token) return;
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/api/channels_for_ereader?token=' + token, true);
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        var n_channels = response.channels.length;
+                        console.log(response);
+                        if (n_channels > 0) {
+                            document.getElementById('statusText').textContent = 'Found ' + n_channels + ' channel(s)';
+                            setTimeout(checkPairingStatus, POLL_INTERVAL);
+                        } else {
+                            setTimeout(checkPairingStatus, POLL_INTERVAL);
+                        }
+                    }
+                };
+                
+                xhr.send();
+            }
+
+            function startPolling() {
+                checkPairingStatus();
+            }
+
+            // Start the process
+            fetchPairingCode();
+        })();
+    </script>
+</body>
+</html>
