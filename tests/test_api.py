@@ -75,14 +75,14 @@ class TestChannelHandling():
         with app.test_client() as client:
             res = client.get(f'/api/pair/{ereader['pairing_code']}?token={sender['token']}')
             assert res.status_code == 200
-        
+
         data = res.get_json()
         assert isinstance(data['channel']['channel_id'], str)
         assert isinstance(data['channel']['token'], str)
 
     def test_channels_for_ereader(self, app):
         "Test retrieval of channels for e-reader"
-        
+
         with app.test_client() as client:
             sender = client.get('/api/new_client').get_json()['client']
             ereader = client.get('/api/new_client').get_json()['client']
@@ -101,7 +101,7 @@ class TestChannelHandling():
 
     def test_channels_for_ereader_invalid_token(self, app):
         "Test failure of retrieval of channels for e-reader with invalid token"
-    
+
         ereader_code = 'ereader-code'
         invalid_token = 'not-a-valid-token'
         with app.test_client() as client:

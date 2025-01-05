@@ -55,11 +55,12 @@
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                 </svg>
                 <h2 class="font-semibold">BookLink Connect</h1>
-                <p class="subtitle">Use this code on your sending device</p>
+                <p class="subtitle">Enter this code on your other device (expires every {{ expiration_seconds }} seconds)</p>
+                <p class="subtitle"></p>
                 <div class="code-box" id="pairingCode">Loading...</div>
                 <p class="status">
                     <span class="status-dot"></span>
-                    <span id="statusText">Waiting for connection...</span>
+                    <span id="statusText">Ready to connect</span>
                 </p>
             </td>
         </tr>
@@ -67,8 +68,10 @@
 
     <script>
         (function() {
+            var CLIENT_EXPIRATION_MS = {{ client_expiration_seconds }} * 1000;
+            var POLL_PAIRING_STATUS_S = {{ poll_pairing_status_seconds }} * 1000;
             var token = null;
-            var POLL_INTERVAL = 3000;
+            var pollingStarted = false;
 
             function fetchPairingCode() {
                 var xhr = new XMLHttpRequest();
@@ -80,15 +83,16 @@
                         document.getElementById('pairingCode').textContent = response.client.pairing_code.toUpperCase();
                         token = response.client.token;
                         startPolling();
+                        setTimeout(fetchPairingCode, EXPIRATION_MS)
                     } else {
                         document.getElementById('pairingCode').textContent = 'Error';
-                        document.getElementById('statusText').textContent = 'Connection failed';
+                        document.getElementById('statusText').textContent = 'Connection failed (retry later)';
                     }
                 };
                 
                 xhr.onerror = function() {
                     document.getElementById('pairingCode').textContent = 'Error';
-                    document.getElementById('statusText').textContent = 'Network error';
+                    document.getElementById('statusText').textContent = 'Network error (retry later)';
                 };
                 
                 xhr.send();
@@ -107,9 +111,9 @@
                         console.log(response);
                         if (n_channels > 0) {
                             document.getElementById('statusText').textContent = 'Found ' + n_channels + ' channel(s)';
-                            setTimeout(checkPairingStatus, POLL_INTERVAL);
+                            setTimeout(checkPairingStatus, POLL_PAIRING_STATUS_S);
                         } else {
-                            setTimeout(checkPairingStatus, POLL_INTERVAL);
+                            setTimeout(checkPairingStatus, POLL_PAIRING_STATUS_S);
                         }
                     }
                 };
@@ -118,7 +122,9 @@
             }
 
             function startPolling() {
+                if (pollingStarted) return;
                 checkPairingStatus();
+                pollingStarted = true;
             }
 
             fetchPairingCode();

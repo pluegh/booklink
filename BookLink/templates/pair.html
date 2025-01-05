@@ -52,6 +52,7 @@
 {% block scripts %}
 <script>
     (function() {
+        var EXPIRATION_MS = {{ expiration_seconds }} * 1000;
         var form = document.getElementById('pairForm');
         var statusContainer = document.getElementById('statusContainer');
         var statusDot = document.getElementById('statusDot');
@@ -67,11 +68,13 @@
             switch(status) {
                 case 'connecting':
                     statusDot.className = 'w-2 h-2 bg-gray-500 rounded-full';
+                    submitButton.disabled = true;
                     statusText.textContent = 'Connecting...';
                     break;
                 case 'success':
                     statusDot.className = 'w-2 h-2 bg-green-500 rounded-full';
-                    statusText.textContent = 'Connected successfully!';
+                    submitButton.disabled = false;
+                    statusText.textContent = 'Ready to connect';
                     break;
                 case 'error':
                     statusDot.className = 'w-2 h-2 bg-red-500 rounded-full';
@@ -81,6 +84,7 @@
         }
 
         function fetchPairingCode() {
+                updateStatus('connecting');
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', '/api/new_client', true);
                 
@@ -88,6 +92,8 @@
                     if (xhr.status === 200) {
                         var response = JSON.parse(xhr.responseText);
                         token = response.client.token;
+                        updateStatus('success');
+                        setTimeout(fetchPairingCode, EXPIRATION_MS);
                     } else {
                         document.getElementById('pairingCode').textContent = 'Error';
                         document.getElementById('statusText').textContent = 'Connection failed';

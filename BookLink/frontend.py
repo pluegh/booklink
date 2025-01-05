@@ -58,10 +58,13 @@ def pair():
     if 'is_ereader' in request.args:
         # Only show code to enter on sender device
         return render_template(
-            'simple_pair.html'
+            'simple_pair.html',
+            client_expiration_seconds=current_app.config['CLIENT_EXPIRATION_SECONDS'],
+            poll_pairing_status_seconds=current_app.config['POLL_PAIRING_STATUS_SECONDS'],
         )
 
     # Only ask to enter code of e-reader device
     return render_template(
         'pair.html',
+        expiration_seconds=current_app.config['CLIENT_EXPIRATION_SECONDS'],
     )
