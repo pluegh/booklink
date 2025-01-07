@@ -41,11 +41,11 @@ def pair():
     if 'friendly_name' not in request.args:
         user_agent = request.headers.get('User-Agent').lower()
         print(f"User agent: {user_agent}")
-        agent_identifiers = ['kobo', 'kindle', 'safari']
+        agent_identifiers = agent_to_friendly_name.keys()
         for agent_id in agent_identifiers:
             if agent_id not in user_agent:
                 continue
-            url = url_for('.pair', friendly_name=f'{agent_id} device', is_ereader='on')
+            url = url_for('.pair', friendly_name=f'{agent_to_friendly_name.get(agent_id, 'unknown')}', is_ereader='on')
             print(f"Redirecting to {url}")
             return redirect(url)
 
@@ -68,3 +68,8 @@ def pair():
         'pair.html',
         expiration_seconds=current_app.config['CLIENT_EXPIRATION_SECONDS'],
     )
+
+agent_to_friendly_name = {
+    'kobo': 'Kobo Device',
+    'kindle': 'Kindle Device',
+}

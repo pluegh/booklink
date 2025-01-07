@@ -3,27 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { margin: 0; font-family: sans-serif; }
-        .content-table {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            border-spacing: 0;
+        body {
+            margin: 0;
+            font-family: sans-serif;
         }
-        .main-content { text-align: center; padding: 40px 20px; }
+        .content-table {
+            width: 90%;
+            max-width: 800px;
+            border-spacing: 0;
+            margin: 10px auto;
+        }
+        .content-table th {
+            border-bottom: 2px solid;
+        }
+        .main-content {
+            text-align: center;
+            padding: 40px 20px;
+        }
         .title {
             font-size: 32px;
             font-weight: normal;
             margin: 20px 0;
         }
         .subtitle {
-            color: #666;
             font-size: 18px;
             margin: 20px 0;
         }
         .code-box {
-            background: white;
-            border: 1px solid black;
+            border: 1px solid;
             border-radius: 4px;
             padding: 20px;
             margin: 30px auto;
@@ -31,8 +38,15 @@
             font-size: 40px;
             letter-spacing: 10px;
         }
+        .logo-cell {
+            width: 64px;
+            padding: 0 15px;
+        }
+        .title-text-cell {
+            text-align: left;
+            padding: 0 0;
+        }
         .status {
-            color: #666;
             font-size: 16px;
             margin: 20px 0;
         }
@@ -40,27 +54,36 @@
             display: inline-block;
             width: 8px;
             height: 8px;
-            background: black;
+            background: green;
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 5px;
+            margin-bottom: 0.15ex;
         }
     </style>
 </head>
 <body>
     <table class="content-table">
         <tr>
-            <td colspan="2" class="main-content">
+            <th class="logo-cell">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                 </svg>
-                <h2 class="font-semibold">BookLink Connect</h1>
-                <p class="subtitle">Enter this code on your other device (expires every {{ expiration_seconds }} seconds)</p>
+            </th>
+            <th class="title-text-cell">
+                <h1 class="font-semibold">BookLink</h1>
+            </th>
+        </tr>
+        <tr>
+            <td colspan="2" class="main-content">
+                <h2 class="font-semibold">Pairing Code</h2>
+                <p class="subtitle">Enter this code on your other device (expires every {{ client_expiration_seconds }} seconds)</p>
                 <p class="subtitle"></p>
-                <div class="code-box" id="pairingCode">Loading...</div>
+                <div class="code-box" id="pairingCode">...</div>
                 <p class="status">
-                    <span class="status-dot"></span>
-                    <span id="statusText">Ready to connect</span>
+                    <span class="status-dot" id="connection-status-dot"></span>
+                    <span id="statusText"></span>
+                    <span id="pairing-results"></span>
                 </p>
             </td>
         </tr>
@@ -73,32 +96,53 @@
             var token = null;
             var pollingStarted = false;
 
+            handleStatus('initializing');
+
             function fetchPairingCode() {
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', '/api/new_client', true);
                 
                 xhr.onload = function() {
                     if (xhr.status === 200) {
+                        handleStatus('fetch-code-success');
                         var response = JSON.parse(xhr.responseText);
-                        document.getElementById('pairingCode').textContent = response.client.pairing_code.toUpperCase();
                         token = response.client.token;
-                        startPolling();
-                        setTimeout(fetchPairingCode, EXPIRATION_MS)
+                        document.getElementById('pairingCode').textContent =
+                            response.client.pairing_code.toUpperCase();
+                        setTimeout(fetchPairingCode, CLIENT_EXPIRATION_MS);
+                        startPollingPairingResults();
                     } else {
-                        document.getElementById('pairingCode').textContent = 'Error';
-                        document.getElementById('statusText').textContent = 'Connection failed (retry later)';
+                        handleStatus('fetch-code-failed');
                     }
                 };
                 
                 xhr.onerror = function() {
-                    document.getElementById('pairingCode').textContent = 'Error';
-                    document.getElementById('statusText').textContent = 'Network error (retry later)';
+                    handleStatus('connection-error');
                 };
                 
                 xhr.send();
             }
 
-            function checkPairingStatus() {
+            function handleStatus(status) {
+                switch (status) {
+                    case 'initializing':
+                        document.getElementById('statusText').textContent = 'Initializing';
+                        break;
+                    case 'fetch-code-success':
+                        document.getElementById('statusText').textContent = 'Ready to pair';
+                        break;
+                    case 'fetch-code-failed':
+                        document.getElementById('statusText').textContent = 'Connection failed (retry later)';
+                        break;
+                    case 'connection-error':
+                        document.getElementById('statusText').textContent = 'Network error (retry later)';
+                        break;
+                    default:
+                        console.log('Unknown status');
+                }
+            }
+
+            function pollPairingResults() {
                 if (!token) return;
 
                 var xhr = new XMLHttpRequest();
@@ -109,21 +153,17 @@
                         var response = JSON.parse(xhr.responseText);
                         var n_channels = response.channels.length;
                         console.log(response);
-                        if (n_channels > 0) {
-                            document.getElementById('statusText').textContent = 'Found ' + n_channels + ' channel(s)';
-                            setTimeout(checkPairingStatus, POLL_PAIRING_STATUS_S);
-                        } else {
-                            setTimeout(checkPairingStatus, POLL_PAIRING_STATUS_S);
-                        }
+                        setTimeout(pollPairingResults, POLL_PAIRING_STATUS_S);
+                        document.getElementById('pairing-results').textContent = '– found ' + n_channels + ' channel(s)';
                     }
                 };
                 
                 xhr.send();
             }
 
-            function startPolling() {
+            function startPollingPairingResults() {
                 if (pollingStarted) return;
-                checkPairingStatus();
+                pollPairingResults();
                 pollingStarted = true;
             }
 
