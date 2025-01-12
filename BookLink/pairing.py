@@ -1,5 +1,5 @@
 """
-Defines a client register with zero storage using json web tokens.
+Defines resources for pairing process.
 """
 import threading
 
