@@ -6,7 +6,6 @@ import abc
 from dataclasses import dataclass
 import threading
 
-from BookLink.channel import Channel
 from BookLink.utils import now_unixutc
 
 @dataclass
