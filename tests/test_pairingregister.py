@@ -3,7 +3,7 @@ import datetime
 
 import jwt
 
-from BookLink.pairing import (
+from BookLink.pairingregister import (
     Channel,
     Client,
     ClientNotFoundError,

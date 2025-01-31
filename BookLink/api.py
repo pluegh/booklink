@@ -13,7 +13,7 @@ from flask import (
 )
 import jwt
 
-from BookLink.pairing import PairingRegister, TooManyClientsError
+from BookLink.pairingregister import PairingRegister, TooManyClientsError
 from BookLink.client import Client
 from BookLink.channel import Channel
 from BookLink.utils import now_unixutc
