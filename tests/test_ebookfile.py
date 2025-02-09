@@ -15,3 +15,4 @@ class TestInMemoryEbookFile:
         assert file.name == "test"
         assert file.data.read() == b"test"
         assert file.created_at_unixutc > 0
+        assert file.size_bytes() == 4

@@ -73,3 +73,13 @@ agent_to_friendly_name = {
     'kobo': 'Kobo Device',
     'kindle': 'Kindle Device',
 }
+
+@bp.route('/receive')
+def receive():
+    "Receive route"
+    return render_template('simple_receive.html')
+
+@bp.route('/send/<channel_token>')
+def send(channel_token):
+    "Send route"
+    return render_template('send.html', channel_token=channel_token)

@@ -19,3 +19,7 @@ class InMemoryEbookFile(RegisteredFile):
             data=io.BytesIO(data),
             created_at_unixutc = now_unixutc(),
         )
+
+    def size_bytes(self) -> int:
+        "Return the size of the file in bytes"
+        return self.data.getbuffer().nbytes

@@ -16,3 +16,11 @@ def human_friendly_pairing_code(n_chars=4):
 def url_friendly_code(n_chars=16):
     "Generate a URL-friendly code"
     return secrets.token_urlsafe(n_chars)
+
+def file_size_string(num):
+    "Return a human-readable file size with byte suffix."
+    for unit in ("B", "kB", "MB", "GB"):
+        if abs(num) < 1000.0:
+            return f"{num:3.1f}{unit}"
+        num /= 1000.0
+    return f"{num:3.1f}TB"

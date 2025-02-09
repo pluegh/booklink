@@ -12,10 +12,14 @@ from flask import (
     request
 )
 import jwt
+from werkzeug.utils import secure_filename
 
 from BookLink.pairingregister import PairingRegister, TooManyClientsError
 from BookLink.client import Client
+from BookLink.ebookfile import InMemoryEbookFile
+from BookLink.fileregister import FileRegister
 from BookLink.channel import Channel
+from BookLink.utils import file_size_string
 from BookLink.utils import now_unixutc
 
 bp = Blueprint('api', __name__, url_prefix='/api')
@@ -26,6 +30,7 @@ def init_app(app):
         client_expiration_seconds=app.config['CLIENT_EXPIRATION_SECONDS'],
         max_clients_in_pairing=app.config['MAX_CLIENTS_IN_PAIRING'],
     )
+    current_app.file_register = FileRegister()
 
 def auth_client(f):
     "Authenticate client token for the route and store the client in g"
@@ -110,3 +115,38 @@ def auth_channel(f):
         g.authenticated_channel = channel
         return f(channel, *args, **kwargs)
     return decorator
+
+@bp.route('/upload', methods=['POST'])
+@auth_channel
+def upload_file(channel):
+    "Upload a file to the channel"
+    current_app.logger.info("Uploading file")
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    raw_file = request.files['file']
+    if raw_file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if raw_file:
+        filename = secure_filename(raw_file.filename)
+        file_content = raw_file.read()
+        current_app.file_register.add_file(
+            channel.channel_id,
+            InMemoryEbookFile.make(name=filename, data=file_content)
+        )
+        return jsonify({'message': 'File uploaded successfully'}), 200
+
+    return jsonify({'error': 'File type not allowed'}), 400
+
+@bp.route('/files')
+@auth_channel
+def get_files(channel):
+    "Get all files for a channel"
+    file_ids = current_app.file_register.get_file_ids_for_channel(channel.channel_id)
+    file_descriptions = []
+    for file_id in file_ids:
+        file = current_app.file_register.get_file_for_channel(channel.channel_id, file_id)
+        size = file_size_string(file.size_bytes())
+        file_descriptions.append({'name': file.name, 'id': file_id, 'size': size})
+    return jsonify({'files': file_descriptions})

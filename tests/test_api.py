@@ -3,6 +3,8 @@
 import pytest
 
 from flask import current_app
+import io
+from werkzeug.datastructures import FileStorage
 
 import BookLink
 
@@ -66,7 +68,7 @@ class TestChannelHandling():
         })
         yield app
 
-    def pair_response(self, app):
+    def test_pair_response(self, app):
         "Test pairing of two clients"
         with app.test_client() as client:
             sender = client.get('/api/new_client').get_json()['client']
@@ -107,3 +109,64 @@ class TestChannelHandling():
         with app.test_client() as client:
             pair_res = client.get(f'/api/pair/{ereader_code}?token={invalid_token}')
             assert pair_res.status_code == 401
+
+    def test_upload_file(self, app):
+        "Test uploading a file"
+
+        # Create users for pairing
+        with app.test_client() as client:
+            sender = client.get('/api/new_client').get_json()['client']
+            ereader = client.get('/api/new_client').get_json()['client']
+
+        # Create channel
+        with app.test_client() as client:
+            pair_res = client.get(f'/api/pair/{ereader['pairing_code']}?token={sender['token']}')
+            assert pair_res.status_code == 200
+        pair_response = pair_res.get_json()['channel']
+        channel_id = pair_response['channel_id']
+        channel_token = pair_response['token']
+
+        with app.test_client() as client:
+            upload_res = client.post(f'/api/upload?token={channel_token}',
+            data={
+                'file': (io.BytesIO(b'test_file_content'), 'test_file_name')
+            },)
+            assert upload_res.get_json() == {'message': 'File uploaded successfully'}
+
+        files = app.file_register.get_files_for_channel(channel_id)
+        assert len(files) == 1
+        assert files[0].name == 'test_file_name'
+
+    def test_get_files(self, app):
+        "Test getting files for channel"
+
+        # Create users for pairing
+        with app.test_client() as client:
+            sender = client.get('/api/new_client').get_json()['client']
+            ereader = client.get('/api/new_client').get_json()['client']
+
+        # Create channel
+        with app.test_client() as client:
+            pair_res = client.get(f'/api/pair/{ereader['pairing_code']}?token={sender['token']}')
+            assert pair_res.status_code == 200
+        pair_response = pair_res.get_json()['channel']
+        channel_id = pair_response['channel_id']
+        channel_token = pair_response['token']
+
+        # Upload file
+        with app.test_client() as client:
+            upload_res = client.post(f'/api/upload?token={channel_token}',
+            data={
+                'file': (io.BytesIO(b'test_file_content'), 'test_file_name')
+            },)
+            assert upload_res.get_json() == {'message': 'File uploaded successfully'}
+
+        # Get files
+        with app.test_client() as client:
+            get_files_res = client.get(f'/api/files?token={channel_token}')
+            assert get_files_res.status_code == 200
+            resp = get_files_res.get_json()
+            assert len(resp['files']) == 1
+            assert resp['files'][0]['name'] == 'test_file_name'
+            assert resp['files'][0]['size'] > 0
+            assert resp['files'][0]['id'] is not None

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Books{% endblock %}
+
+{% block extra_head %}
+<style>
+.drop-zone.dragover {
+    @apply bg-blue-50 border-blue-500;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="max-w-5xl mx-auto p-6">
+    <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Upload Books</h2>
+        
+        <div id="uploadZone" class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
+            <input type="file" id="fileInput" multiple class="hidden" accept=".epub,.pdf">
+            <p class="text-gray-600 mb-2">Drag & drop files here or</p>
+            <button onclick="document.getElementById('fileInput').click()" 
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Select Files
+            </button>
+            <p class="text-sm text-gray-500 mt-2">Maximum file size: 10MB</p>
+        </div>
+
+        <ul id="fileList" class="space-y-2"></ul>
+        
+        <div id="messages" class="mt-4"></div>
+
+        <button id="uploadButton" 
+                class="hidden mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                disabled>
+            Upload Files
+        </button>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const uploadButton = document.getElementById('uploadButton');
+const messages = document.getElementById('messages');
+const maxFileSize = 10 * 1024 * 1024;
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+    uploadZone.addEventListener(event, preventDefault);
+    document.body.addEventListener(event, preventDefault);
+});
+
+function preventDefault(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(event => {
+    uploadZone.addEventListener(event, () => uploadZone.classList.add('dragover'));
+});
+
+['dragleave', 'drop'].forEach(event => {
+    uploadZone.addEventListener(event, () => uploadZone.classList.remove('dragover'));
+});
+
+uploadZone.addEventListener('drop', handleDrop);
+fileInput.addEventListener('change', handleFiles);
+
+function handleDrop(e) {
+    handleFiles({ target: { files: e.dataTransfer.files } });
+}
+
+function handleFiles(e) {
+    const files = [...e.target.files];
+    fileList.innerHTML = '';
+    messages.innerHTML = '';
+    
+    files.forEach(file => {
+        if (file.size > maxFileSize) {
+            showMessage(`${file.name} is too large (max 10MB)`, 'error');
+            return;
+        }
+        
+        const li = document.createElement('li');
+        li.className = 'flex items-center space-x-4 bg-gray-50 p-3 rounded';
+        li.innerHTML = `
+            <div class="flex-1">
+                <div class="font-medium">${file.name}</div>
+                <div class="text-sm text-gray-500">${(file.size / 1024).toFixed(1)} KB</div>
+                <div class="h-1 w-full bg-gray-200 rounded overflow-hidden">
+                    <div class="progress h-full bg-blue-600 w-0 transition-all"></div>
+                </div>
+            </div>
+            <button onclick="this.closest('li').remove(); updateUploadButton()" 
+                    class="text-gray-500 hover:text-gray-700">
+                ✕
+            </button>
+        `;
+        fileList.appendChild(li);
+    });
+    
+    updateUploadButton();
+}
+
+function updateUploadButton() {
+    const hasFiles = fileList.children.length > 0;
+    uploadButton.style.display = hasFiles ? 'block' : 'none';
+    uploadButton.disabled = !hasFiles;
+}
+
+function showMessage(text, type) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    div.className = type === 'error' ? 'text-red-600' : 'text-green-600';
+    messages.appendChild(div);
+}
+
+uploadButton.addEventListener('click', () => {
+    uploadButton.disabled = true;
+    const items = [...fileList.children];
+    
+    items.forEach((item, index) => {
+        const formData = new FormData();
+        formData.append('file', fileInput.files[index]);
+
+        const xhr = new XMLHttpRequest();
+        const progressBar = item.querySelector('.progress');
+
+        xhr.upload.addEventListener('progress', e => {
+            if (e.lengthComputable) {
+                const percent = (e.loaded / e.total) * 100;
+                progressBar.style.width = percent + '%';
+            }
+        });
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    showMessage(`${fileInput.files[index].name} uploaded successfully`, 'success');
+                } else {
+                    showMessage(`Error uploading ${fileInput.files[index].name}`, 'error');
+                }
+                if (index === items.length - 1) {
+                    uploadButton.disabled = false;
+                }
+            }
+        };
+        var channel_id = 'test-xxx';
+        xhr.open('POST', '/api/upload/' + channel_id, true);
+        xhr.send(formData);
+    });
+});
+</script>
+{% endblock %}

@@ -7,11 +7,18 @@ from BookLink.fileregister import (
     FileRegister,
 )
 from BookLink.utils import now_unixutc
+from BookLink.utils import url_friendly_code
+
+DUMMY_FILE_SIZE_BYTES = 10
 
 @dataclass
 class DummyFile(RegisteredFile):
     "Dummy file class for testing"
     file_id: str
+
+    def size_bytes(self) -> int:
+        "Return the size of the file in bytes"
+        return DUMMY_FILE_SIZE_BYTES
 
 
 class TestFileRegister:
@@ -29,7 +36,7 @@ class TestFileRegister:
         for file in files:
             register.add_file("channel", file)
 
-        res = register.get_files("channel")
+        res = register.get_files_for_channel("channel")
         assert res == files
         assert len(res) == len(files)
 
@@ -44,9 +51,12 @@ class TestFileRegister:
 
         register.prune_expired_files()
 
-        res = register.get_files("channel")
+        res = register.get_files_for_channel("channel")
         assert len(res) == 0
         assert res == []
+
+        # Test that also channel did not become orphan (no content)
+        assert "channel" not in register._files_per_channel
 
     def test_get_files_expired(self, register):
         "Expired files should not be returned"
@@ -58,5 +68,15 @@ class TestFileRegister:
         for file in files_expired + files_valid:
             register.add_file("channel", file)
 
-        res = register.get_files("channel")
+        res = register.get_files_for_channel("channel")
         assert res == files_valid
+
+    def test_total_size_bytes(self, register):
+        "Test total size of files"
+        n_files = 5
+        files = [DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc()) for i in range(n_files)]
+        for file in files:
+            register.add_file("channel", file)
+
+        res = register.total_size_bytes()
+        assert res == n_files * DUMMY_FILE_SIZE_BYTES

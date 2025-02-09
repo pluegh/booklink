@@ -12,7 +12,7 @@ def create_app(test_config=None):
         SECRET_KEY='secrete-dev-key',
         JWT_SECRET='secret-jwt-key',
         MAX_CLIENTS_IN_PAIRING=100,
-        CLIENT_EXPIRATION_SECONDS=5,
+        CLIENT_EXPIRATION_SECONDS=300,
         POLL_PAIRING_STATUS_SECONDS=1,
     )
 
