@@ -3,8 +3,6 @@ name: Tests
 on:
   push:
     paths: ['**.py', 'pyproject.toml', '.github/workflows/tests.yml']
-  pull_request:
-    paths: ['**.py', 'pyproject.toml', '.github/workflows/tests.yml']
 
 jobs:
   test:
