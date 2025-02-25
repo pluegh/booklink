@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "flask>3.0.0",
+    "pyjwt>1.0.0",
 ]
 
 [project.optional-dependencies]
