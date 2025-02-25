@@ -45,7 +45,7 @@ def pair():
         for agent_id in agent_identifiers:
             if agent_id not in user_agent:
                 continue
-            url = url_for('.pair', friendly_name=f'{agent_to_friendly_name.get(agent_id, 'unknown')}', is_ereader='on')
+            url = url_for('.pair', friendly_name=f'{agent_to_friendly_name.get(agent_id, "unknown")}', is_ereader='on')
             print(f"Redirecting to {url}")
             return redirect(url)
 

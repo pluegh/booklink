@@ -75,7 +75,7 @@ class TestChannelHandling():
             ereader = client.get('/api/new_client').get_json()['client']
 
         with app.test_client() as client:
-            res = client.get(f'/api/pair/{ereader['pairing_code']}?token={sender['token']}')
+            res = client.get(f'/api/pair/{ereader["pairing_code"]}?token={sender["token"]}')
             assert res.status_code == 200
 
         data = res.get_json()
@@ -90,12 +90,12 @@ class TestChannelHandling():
             ereader = client.get('/api/new_client').get_json()['client']
 
         with app.test_client() as client:
-            pair_res = client.get(f'/api/pair/{ereader['pairing_code']}?token={sender['token']}')
+            pair_res = client.get(f'/api/pair/{ereader["pairing_code"]}?token={sender["token"]}')
             assert pair_res.status_code == 200
         pair_data = pair_res.get_json()['channel']
         
         with app.test_client() as client:
-            channels_for_ereader_res = client.get(f'/api/channels_for_ereader?token={ereader['token']}')
+            channels_for_ereader_res = client.get(f'/api/channels_for_ereader?token={ereader["token"]}')
             assert channels_for_ereader_res.status_code == 200
         channels_for_ereader_data = channels_for_ereader_res.get_json()['channels']
 
@@ -120,7 +120,7 @@ class TestChannelHandling():
 
         # Create channel
         with app.test_client() as client:
-            pair_res = client.get(f'/api/pair/{ereader['pairing_code']}?token={sender['token']}')
+            pair_res = client.get(f'/api/pair/{ereader["pairing_code"]}?token={sender["token"]}')
             assert pair_res.status_code == 200
         pair_response = pair_res.get_json()['channel']
         channel_id = pair_response['channel_id']
@@ -147,7 +147,7 @@ class TestChannelHandling():
 
         # Create channel
         with app.test_client() as client:
-            pair_res = client.get(f'/api/pair/{ereader['pairing_code']}?token={sender['token']}')
+            pair_res = client.get(f'/api/pair/{ereader["pairing_code"]}?token={sender["token"]}')
             assert pair_res.status_code == 200
         pair_response = pair_res.get_json()['channel']
         channel_id = pair_response['channel_id']
@@ -168,5 +168,5 @@ class TestChannelHandling():
             resp = get_files_res.get_json()
             assert len(resp['files']) == 1
             assert resp['files'][0]['name'] == 'test_file_name'
-            assert resp['files'][0]['size'] > 0
+            assert resp['files'][0]['size'] == '17.0B'
             assert resp['files'][0]['id'] is not None
