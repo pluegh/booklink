@@ -3,9 +3,9 @@ Defines resources for pairing process.
 """
 import threading
 
-from BookLink.channel import Channel
-from BookLink.client import Client
-from BookLink.utils import (
+from booklink.channel import Channel
+from booklink.client import Client
+from booklink.utils import (
     now_unixutc,
     human_friendly_pairing_code,
     url_friendly_code,

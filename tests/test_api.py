@@ -6,7 +6,7 @@ from flask import current_app
 import io
 from werkzeug.datastructures import FileStorage
 
-import BookLink
+import booklink
 
 class TestClientHandling():
     "Test the handling of clients in pairing process"
@@ -14,7 +14,7 @@ class TestClientHandling():
     @pytest.fixture
     def app(self):
         "Return the flask app"
-        app = BookLink.create_app({
+        app = booklink.create_app({
             'TESTING': True,
             'JWT_SECRET': 'secret',
             'MAX_CLIENTS_IN_PAIRING': 10,
@@ -61,7 +61,7 @@ class TestChannelHandling():
     @pytest.fixture
     def app(self):
         "Return the flask app"
-        app = BookLink.create_app({
+        app = booklink.create_app({
             'TESTING': True,
             'JWT_SECRET': 'secret',
             'MAX_CLIENTS_IN_PAIRING': 10,

@@ -2,12 +2,12 @@ import pytest
 
 from dataclasses import dataclass
 
-from BookLink.fileregister import (
+from booklink.fileregister import (
     RegisteredFile,
     FileRegister,
 )
-from BookLink.utils import now_unixutc
-from BookLink.utils import url_friendly_code
+from booklink.utils import now_unixutc
+from booklink.utils import url_friendly_code
 
 DUMMY_FILE_SIZE_BYTES = 10
 

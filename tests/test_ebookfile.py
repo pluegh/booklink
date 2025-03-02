@@ -1,6 +1,6 @@
 import pytest
 
-from BookLink.ebookfile import InMemoryEbookFile
+from booklink.ebookfile import InMemoryEbookFile
 
 class TestInMemoryEbookFile:
     "Test the EbookFile class"

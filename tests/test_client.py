@@ -3,7 +3,7 @@ import pytest
 
 import jwt
 
-from BookLink.client import Client
+from booklink.client import Client
 
 class TestClient:
     "Test the Client class"
