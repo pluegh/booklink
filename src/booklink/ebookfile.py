@@ -2,8 +2,8 @@
 import io
 from dataclasses import dataclass
 
-from BookLink.fileregister import RegisteredFile
-from BookLink.utils import now_unixutc
+from booklink.fileregister import RegisteredFile
+from booklink.utils import now_unixutc
 
 @dataclass
 class InMemoryEbookFile(RegisteredFile):

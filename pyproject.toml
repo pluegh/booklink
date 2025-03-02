@@ -3,7 +3,7 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "BookLink"
+name = "booklink"
 version = "0.1.0"
 description = "A web service to transfer ebooks to e-readers"
 authors = [
@@ -26,6 +26,3 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
 ]
-
-[tool.setuptools]
-packages = ["BookLink"]

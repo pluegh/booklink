@@ -3,7 +3,7 @@ import pytest
 
 import jwt
 
-from BookLink.channel import Channel
+from booklink.channel import Channel
 
 class TestChannel:
     "Test the Channel class"

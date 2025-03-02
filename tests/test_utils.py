@@ -3,7 +3,7 @@ import datetime
 
 import urllib.parse
 
-from BookLink.utils import (
+from booklink.utils import (
     now_unixutc,
     human_friendly_pairing_code,
     url_friendly_code,

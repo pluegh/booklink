@@ -6,8 +6,8 @@ import abc
 from dataclasses import dataclass
 import threading
 
-from BookLink.utils import now_unixutc
-from BookLink.utils import url_friendly_code
+from booklink.utils import now_unixutc
+from booklink.utils import url_friendly_code
 
 class FileRegisterError(Exception):
     "Base class for file register errors"
