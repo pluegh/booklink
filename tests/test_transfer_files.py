@@ -2,7 +2,7 @@ import pytest
 
 from dataclasses import dataclass
 
-from booklink.fileregister import (
+from booklink.transfer_files import (
     RegisteredFile,
     FileRegister,
 )
