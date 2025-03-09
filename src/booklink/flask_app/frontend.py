@@ -21,7 +21,7 @@ def redirect_ereader_to_pair(f):
     def decorated_function(*args, **kwargs):
         user_agent = request.headers.get("User-Agent").lower()
         print(f"User agent: {user_agent}")
-        agent_identifiers = ["kobo", "kindle", "safari"]
+        agent_identifiers = ["kobo", "kindle"]
         for agent_id in agent_identifiers:
             if agent_id not in user_agent:
                 continue
