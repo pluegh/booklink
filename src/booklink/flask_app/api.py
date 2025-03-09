@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 from booklink.pairingregister import PairingRegister, TooManyClientsError
 from booklink.client import Client
 from booklink.ebookfile import InMemoryEbookFile
-from booklink.fileregister import FileRegister
+from booklink.transfer_files import FileRegister
 from booklink.channel import Channel
 from booklink.utils import file_size_string
 from booklink.utils import now_unixutc
