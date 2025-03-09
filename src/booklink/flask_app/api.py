@@ -9,7 +9,7 @@ from flask import Blueprint, current_app, g, jsonify, request
 import jwt
 from werkzeug.utils import secure_filename
 
-from booklink.pairingregister import PairingRegister, TooManyClientsError
+from booklink.pair_devices import PairingRegister, TooManyClientsError
 from booklink.client import Client
 from booklink.ebookfile import InMemoryEbookFile
 from booklink.transfer_files import FileRegister
