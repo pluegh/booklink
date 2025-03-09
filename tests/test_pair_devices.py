@@ -1,7 +1,7 @@
 import pytest
 
 
-from booklink.pairingregister import (
+from booklink.pair_devices import (
     Client,
     ClientNotFoundError,
     PairingRegister,
