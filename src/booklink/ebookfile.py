@@ -3,7 +3,7 @@
 import io
 from dataclasses import dataclass
 
-from booklink.transfer_files import RegisteredFile
+from booklink.storage import RegisteredFile
 from booklink.utils import now_unixutc
 
 
