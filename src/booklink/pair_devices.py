@@ -94,9 +94,6 @@ class PairingRegister:
         client_sender = self.retrieve_client(pairing_code_sender)
         client_ereader = self.retrieve_client(pairing_code_ereader)
 
-        if client_sender is None or client_ereader is None:
-            raise PairingError("Invalid pairing codes")
-
         channel = Channel.make(
             self._unique_channel_id(), client_sender.friendly_name, client_ereader.friendly_name
         )
