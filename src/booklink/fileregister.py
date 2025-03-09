@@ -9,17 +9,21 @@ import threading
 from booklink.utils import now_unixutc
 from booklink.utils import url_friendly_code
 
+
 class FileRegisterError(Exception):
     "Base class for file register errors"
+
 
 @dataclass
 class RegisteredFile(abc.ABC):
     "Interface for registered files"
+
     created_at_unixutc: float
 
     @abc.abstractmethod
     def size_bytes(self) -> int:
         "Return the size of the file in bytes"
+
 
 class FilesPerChannel:
     "List of files per channel with access by file ID"
@@ -57,6 +61,7 @@ class FilesPerChannel:
         "Get the total size of all files in the list"
         return sum(file.size_bytes() for file in self.get_files())
 
+
 class FileRegister:
     """Manage files available in a channel.
 
@@ -65,12 +70,12 @@ class FileRegister:
     """
 
     def __init__(
-            self,
-            max_files_in_channel: int = 100,
-            file_expiration_seconds: int = 300,
-            max_total_file_size_bytes: int = 100 * 1024 * 1024,  # 100 MB
-            max_random_draws_file_id: int = 10,
-        ):
+        self,
+        max_files_in_channel: int = 100,
+        file_expiration_seconds: int = 300,
+        max_total_file_size_bytes: int = 100 * 1024 * 1024,  # 100 MB
+        max_random_draws_file_id: int = 10,
+    ):
         self.max_files_in_channel = max_files_in_channel
         self.file_expiration_seconds = file_expiration_seconds
         self.max_total_size_bytes = max_total_file_size_bytes
@@ -126,7 +131,7 @@ class FileRegister:
 
     def _prune_expired_files_for_channel(self, channel_id):
         "Prune a list of files for a given channel"
-        if not channel_id in self._files_per_channel:
+        if channel_id not in self._files_per_channel:
             return
         for file_id in list(self._files_per_channel[channel_id].file_ids()):
             if self._is_expired(self._files_per_channel[channel_id].get_file(file_id)):

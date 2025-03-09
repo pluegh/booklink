@@ -2,6 +2,7 @@ import pytest
 
 from booklink.ebookfile import InMemoryEbookFile
 
+
 class TestInMemoryEbookFile:
     "Test the EbookFile class"
 

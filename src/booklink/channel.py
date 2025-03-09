@@ -2,13 +2,14 @@
 
 import dataclasses
 
-import jwt
 
 from .utils import now_unixutc
+
 
 @dataclasses.dataclass
 class Channel:
     "Represents a channel for communication between sender device and e-reader"
+
     channel_id: str
     sender_name: str
     ereader_name: str

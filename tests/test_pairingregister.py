@@ -1,14 +1,12 @@
 import pytest
-import datetime
 
-import jwt
 
 from booklink.pairingregister import (
-    Channel,
     Client,
     ClientNotFoundError,
     PairingRegister,
 )
+
 
 class TestPairingRegister:
     "Test the PairingClientRegister class"
@@ -38,7 +36,7 @@ class TestPairingRegister:
         client = register.new_client()
 
         with pytest.raises(ClientNotFoundError):
-            register.retrieve_client(client.pairing_code + 'invalid')
+            register.retrieve_client(client.pairing_code + "invalid")
 
     def test_client_expiration(self, register):
         "Test client expiration"
@@ -65,7 +63,7 @@ class TestPairingRegister:
 
     def test_channels_for_invalid(self, register):
         "Test getting channels invalid code"
-        res = register.channels_for('invalid-code')
+        res = register.channels_for("invalid-code")
         assert res == []
 
     def test_channels_for_expired_client(self, register):
@@ -95,4 +93,4 @@ class TestPairingRegister:
         client = register.new_client()
 
         assert register.client_is_in_pairing(client.pairing_code)
-        assert not register.client_is_in_pairing(client.pairing_code + 'invalid')
+        assert not register.client_is_in_pairing(client.pairing_code + "invalid")

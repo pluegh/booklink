@@ -7,13 +7,14 @@ from booklink.fileregister import (
     FileRegister,
 )
 from booklink.utils import now_unixutc
-from booklink.utils import url_friendly_code
 
 DUMMY_FILE_SIZE_BYTES = 10
+
 
 @dataclass
 class DummyFile(RegisteredFile):
     "Dummy file class for testing"
+
     file_id: str
 
     def size_bytes(self) -> int:
@@ -61,10 +62,12 @@ class TestFileRegister:
     def test_get_files_expired(self, register):
         "Expired files should not be returned"
         register.file_expiration_seconds = 100
-        files_expired = [DummyFile(file_id=f"id={i}",
-                                   created_at_unixutc=now_unixutc() - 100) for i in range(5)]
-        files_valid   = [DummyFile(file_id=f"id={i}",
-                                   created_at_unixutc=now_unixutc() + 100) for i in range(3)]
+        files_expired = [
+            DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc() - 100) for i in range(5)
+        ]
+        files_valid = [
+            DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc() + 100) for i in range(3)
+        ]
         for file in files_expired + files_valid:
             register.add_file("channel", file)
 
@@ -74,7 +77,9 @@ class TestFileRegister:
     def test_total_size_bytes(self, register):
         "Test total size of files"
         n_files = 5
-        files = [DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc()) for i in range(n_files)]
+        files = [
+            DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc()) for i in range(n_files)
+        ]
         for file in files:
             register.add_file("channel", file)
 

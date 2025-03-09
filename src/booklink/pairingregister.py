@@ -1,6 +1,7 @@
 """
 Defines resources for pairing process.
 """
+
 import threading
 
 from booklink.channel import Channel
@@ -13,24 +14,28 @@ from booklink.utils import (
 
 MAX_RANDOM_DRAWS = 10
 
+
 class TooManyClientsError(RuntimeError):
     "Error for exceeding maximum number of clients in pairing process"
+
 
 class PairingError(RuntimeError):
     "Error for invalid pairing"
 
+
 class ClientNotFoundError(RuntimeError):
     "Error for invalid client"
+
 
 class PairingRegister:
     "Manage clients in pairing process"
 
     def __init__(
-            self,
-            client_expiration_seconds: int = 300,
-            max_clients_in_pairing: int = 100,
-            max_random_draws: int = 10,
-        ):
+        self,
+        client_expiration_seconds: int = 300,
+        max_clients_in_pairing: int = 100,
+        max_random_draws: int = 10,
+    ):
         self.client_expiration_seconds = client_expiration_seconds
         self.max_clients_in_pairing = max_clients_in_pairing
         self.max_random_draws = max_random_draws
@@ -44,10 +49,8 @@ class PairingRegister:
     def new_client(self, friendly_name=None):
         "Generate a new client in the register"
         code = self._unique_pairing_code()
-        client = Client.make(code, friendly_name=friendly_name or '')
-        self._clients_in_pairing.update({
-            code: client
-        })
+        client = Client.make(code, friendly_name=friendly_name or "")
+        self._clients_in_pairing.update({code: client})
         # Peform pruning after adding the new client to avoid collisions
         self.prune_expired_clients()
         return client
@@ -97,9 +100,7 @@ class PairingRegister:
             raise PairingError("Invalid pairing codes")
 
         channel = Channel.make(
-            self._unique_channel_id(),
-            client_sender.friendly_name,
-            client_ereader.friendly_name
+            self._unique_channel_id(), client_sender.friendly_name, client_ereader.friendly_name
         )
         self.register_channel_for_ereader(pairing_code_ereader, channel)
         return channel
@@ -114,7 +115,7 @@ class PairingRegister:
         "Generate a unique channel id"
         with self.__channels_lock:
             for _ in range(MAX_RANDOM_DRAWS):
-                channel_id =  url_friendly_code()
+                channel_id = url_friendly_code()
                 if channel_id in self._channels_for:
                     continue
                 return channel_id
