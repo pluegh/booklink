@@ -1,6 +1,4 @@
-"""
-Defines resources for sending files.
-"""
+"Defines resources for sending files"
 
 import abc
 from dataclasses import dataclass

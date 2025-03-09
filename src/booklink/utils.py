@@ -1,4 +1,4 @@
-"Utility functions for BookLink"
+"Utility functions"
 
 import datetime
 import random

@@ -1,6 +1,4 @@
-"""
-Defines resources for pairing process.
-"""
+"Defines resources for pairing process"
 
 import threading
 

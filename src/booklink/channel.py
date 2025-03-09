@@ -3,7 +3,7 @@
 import dataclasses
 
 
-from .utils import now_unixutc
+from booklink.utils import now_unixutc
 
 
 @dataclasses.dataclass

@@ -1,4 +1,4 @@
-"Class for ebook files"
+"Module for ebook files"
 
 import io
 from dataclasses import dataclass
