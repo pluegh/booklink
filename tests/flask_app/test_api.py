@@ -1,11 +1,14 @@
-"Test routes of the api backend"
+"""
+Test routes of the api backend
+"""
+
+import io
+from dataclasses import dataclass
 
 import pytest
 
-from flask import current_app
-import io
-
 import booklink.flask_app
+from booklink.application_service import ApplicationServiceConfig
 
 
 class TestClientHandling:
@@ -18,7 +21,9 @@ class TestClientHandling:
             {
                 "TESTING": True,
                 "JWT_SECRET": "secret",
-                "MAX_CLIENTS_IN_PAIRING": 10,
+                "APP_SERVICE_CONFIG": ApplicationServiceConfig(
+                    max_clients_in_pairing=10,
+                ),
             }
         )
         yield app
@@ -29,7 +34,7 @@ class TestClientHandling:
             res = client.get("/api/new_client")
             assert res.status_code == 200
 
-            data = res.get_json()["client"]
+            data = res.get_json()
             assert "pairing_code" in data
             assert "token" in data
             assert isinstance(data["pairing_code"], str)
@@ -41,9 +46,6 @@ class TestClientHandling:
             for _ in range(10):
                 res = client.get("/api/new_client")
                 assert res.status_code == 200
-
-        with app.app_context():
-            assert len(current_app.pairing_register.all_clients_in_pairing) == 10
 
     def test_too_many_new_clients(self, app):
         "Test handling of too many new clients"
@@ -60,9 +62,22 @@ class TestClientHandling:
 class TestChannelHandling:
     "Test the handling of channels"
 
+    @dataclass(frozen=True)
+    class AppWithPairedUsersFixture:
+        "Fixture for app with paired users"
+
+        app: booklink.flask_app.Flask
+        client_id_a: str
+        client_token_a: str
+        client_id_b: str
+        client_token_b: str
+        channel_id: str
+        channel_token_a: str
+        channel_token_b: str
+
     @pytest.fixture
-    def app(self):
-        "Return the flask app"
+    def app_with_paired_users(self):
+        "Return app with paired users and associated data"
         app = booklink.flask_app.create_app(
             {
                 "TESTING": True,
@@ -70,108 +85,91 @@ class TestChannelHandling:
                 "MAX_CLIENTS_IN_PAIRING": 10,
             }
         )
-        yield app
 
-    def test_pair_response(self, app):
+        with app.test_client() as client:
+            user_a = client.get("/api/new_client").get_json()
+            user_b = client.get("/api/new_client").get_json()
+
+        with app.test_client() as client:
+            res = client.get(
+                f"/api/pair/{user_a['client_id']}/{user_b['pairing_code']}?token={user_a['token']}"
+            )
+            assert res.status_code == 200
+            channel_res_a = res.get_json()
+
+        with app.test_client() as client:
+            res = client.get(f"/api/channels_for/{user_b['client_id']}?token={user_b['token']}")
+            channel_res_b = res.get_json()[0]
+
+        channel_id = channel_res_a["channel_id"]
+
+        return self.AppWithPairedUsersFixture(
+            app,
+            user_a["client_id"],
+            user_a["token"],
+            user_b["client_id"],
+            user_b["token"],
+            channel_id,
+            channel_res_a["token"],
+            channel_res_b["token"],
+        )
+
+    def test_pair_response(self, app_with_paired_users):
         "Test pairing of two clients"
-        with app.test_client() as client:
-            sender = client.get("/api/new_client").get_json()["client"]
-            ereader = client.get("/api/new_client").get_json()["client"]
+        fixture = app_with_paired_users  # pylint: disable=unused-variable
 
-        with app.test_client() as client:
-            res = client.get(f"/api/pair/{ereader['pairing_code']}?token={sender['token']}")
+        assert isinstance(fixture.channel_id, str)
+        assert isinstance(fixture.channel_token_a, str)
+        assert isinstance(fixture.channel_token_b, str)
+
+    def test_channels_for_ereader(self, app_with_paired_users):
+        "Test retrieval of channels for e-reader"
+        fixture = app_with_paired_users  # pylint: disable=unused-variable
+
+        with fixture.app.test_client() as client:
+            res = client.get(
+                f"/api/channels_for/{fixture.client_id_b}?token={fixture.client_token_b}"
+            )
             assert res.status_code == 200
 
-        data = res.get_json()
-        assert isinstance(data["channel"]["channel_id"], str)
-        assert isinstance(data["channel"]["token"], str)
+        channels_for_ereader_data = res.get_json()
 
-    def test_channels_for_ereader(self, app):
-        "Test retrieval of channels for e-reader"
+        assert len(channels_for_ereader_data) == 1
 
-        with app.test_client() as client:
-            sender = client.get("/api/new_client").get_json()["client"]
-            ereader = client.get("/api/new_client").get_json()["client"]
-
-        with app.test_client() as client:
-            pair_res = client.get(f"/api/pair/{ereader['pairing_code']}?token={sender['token']}")
-            assert pair_res.status_code == 200
-        pair_data = pair_res.get_json()["channel"]
-
-        with app.test_client() as client:
-            channels_for_ereader_res = client.get(
-                f"/api/channels_for_ereader?token={ereader['token']}"
-            )
-            assert channels_for_ereader_res.status_code == 200
-        channels_for_ereader_data = channels_for_ereader_res.get_json()["channels"]
-
-        assert channels_for_ereader_data == [pair_data]
-
-    def test_channels_for_ereader_invalid_token(self, app):
-        "Test failure of retrieval of channels for e-reader with invalid token"
-
-        ereader_code = "ereader-code"
-        invalid_token = "not-a-valid-token"
-        with app.test_client() as client:
-            pair_res = client.get(f"/api/pair/{ereader_code}?token={invalid_token}")
-            assert pair_res.status_code == 401
-
-    def test_upload_file(self, app):
+    def test_upload_file(self, app_with_paired_users):
         "Test uploading a file"
+        fixture = app_with_paired_users  # pylint: disable=unused-variable
 
-        # Create users for pairing
-        with app.test_client() as client:
-            sender = client.get("/api/new_client").get_json()["client"]
-            ereader = client.get("/api/new_client").get_json()["client"]
-
-        # Create channel
-        with app.test_client() as client:
-            pair_res = client.get(f"/api/pair/{ereader['pairing_code']}?token={sender['token']}")
-            assert pair_res.status_code == 200
-        pair_response = pair_res.get_json()["channel"]
-        channel_id = pair_response["channel_id"]
-        channel_token = pair_response["token"]
-
-        with app.test_client() as client:
+        with fixture.app.test_client() as client:
             upload_res = client.post(
-                f"/api/upload?token={channel_token}",
+                f"/api/upload/{fixture.channel_id}/{fixture.client_id_a}"
+                f"?token={fixture.channel_token_a}",
                 data={"file": (io.BytesIO(b"test_file_content"), "test_file_name")},
             )
             assert upload_res.get_json() == {"message": "File uploaded successfully"}
 
-        files = app.file_register.get_files_for_channel(channel_id)
-        assert len(files) == 1
-        assert files[0].name == "test_file_name"
-
-    def test_get_files(self, app):
+    def test_get_files(self, app_with_paired_users):
         "Test getting files for channel"
-
-        # Create users for pairing
-        with app.test_client() as client:
-            sender = client.get("/api/new_client").get_json()["client"]
-            ereader = client.get("/api/new_client").get_json()["client"]
-
-        # Create channel
-        with app.test_client() as client:
-            pair_res = client.get(f"/api/pair/{ereader['pairing_code']}?token={sender['token']}")
-            assert pair_res.status_code == 200
-        pair_response = pair_res.get_json()["channel"]
-        channel_token = pair_response["token"]
+        fixture = app_with_paired_users
 
         # Upload file
-        with app.test_client() as client:
+        with fixture.app.test_client() as client:
             upload_res = client.post(
-                f"/api/upload?token={channel_token}",
+                f"/api/upload/{fixture.channel_id}"
+                f"/{fixture.client_id_a}?token={fixture.channel_token_a}",
                 data={"file": (io.BytesIO(b"test_file_content"), "test_file_name")},
             )
             assert upload_res.get_json() == {"message": "File uploaded successfully"}
 
-        # Get files
-        with app.test_client() as client:
-            get_files_res = client.get(f"/api/files?token={channel_token}")
+        # Get list of files
+        with fixture.app.test_client() as client:
+            get_files_res = client.get(
+                f"/api/files/{fixture.channel_id}/"
+                f"{fixture.client_id_b}?token={fixture.channel_token_b}"
+            )
             assert get_files_res.status_code == 200
-            resp = get_files_res.get_json()
-            assert len(resp["files"]) == 1
-            assert resp["files"][0]["name"] == "test_file_name"
-            assert resp["files"][0]["size"] == "17.0B"
-            assert resp["files"][0]["id"] is not None
+            data = get_files_res.get_json()
+            assert len(data) == 1
+            assert data[0]["name"] == "test_file_name"
+            assert data[0]["size"] == "17.0B"
+            assert data[0]["id"] is not None

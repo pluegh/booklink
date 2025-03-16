@@ -2,164 +2,111 @@
 Provides the API backend.
 """
 
-import dataclasses
-from functools import wraps
-
-from flask import Blueprint, current_app, g, jsonify, request
-import jwt
+from flask import Blueprint, current_app, request
 from werkzeug.utils import secure_filename
 
-from booklink.pair_devices import PairingRegister, TooManyClientsError
-from booklink.client import Client
-from booklink.ebookfile import InMemoryEbookFile
-from booklink.storage import FileRegister
-from booklink.channel import Channel
-from booklink.utils import file_size_string
-from booklink.utils import now_unixutc
+from booklink.application_service import ApplicationService
+from booklink.pair_devices import TooManyClientsError
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
 
 def init_app(app):
     "Define registration of the blueprint with the app"
-    current_app.pairing_register = PairingRegister(
-        client_expiration_seconds=app.config["CLIENT_EXPIRATION_SECONDS"],
-        max_clients_in_pairing=app.config["MAX_CLIENTS_IN_PAIRING"],
-    )
-    current_app.file_register = FileRegister()
+    current_app.service = ApplicationService(config=current_app.config["APP_SERVICE_CONFIG"])
 
 
-def auth_client(f):
-    "Authenticate client token for the route and store the client in g"
-
-    @wraps(f)
-    def decorator(*args, **kwargs):
-        token = request.args.get("token")
-        if not token:
-            return "No token provided", 400
-        try:
-            payload = decode(token)
-        except jwt.DecodeError:
-            return "Invalid token", 401
-
-        client = Client(**payload)
-
-        client_age_seconds = now_unixutc() - client.created_at_unixutc
-        if client_age_seconds > current_app.config["CLIENT_EXPIRATION_SECONDS"]:
-            return "Client token expired", 401
-
-        g.authenticated_client = client
-        return f(client, *args, **kwargs)
-
-    return decorator
+def token_arg():
+    "Get token from request argument"
+    token = request.args.get("token")
+    if not token:
+        return "No token provided", 400
+    return token
 
 
 @bp.route("/new_client")
 def new_client():
     "Generate a new client for pairing"
+
     name = request.args.get("friendly_name") or ""
-    current_app.logger.debug("New client request (from %s)", name or "unknown")
+
     try:
-        pairing_code, client = current_app.pairing_register.new_client(friendly_name=name)
+        client_id, pairing_code, token = current_app.service.new_client(friendly_name=name)
     except TooManyClientsError:
-        current_app.logger.error("Deny new client due to too many clients")
         return "Too many clients in pairing process", 500
 
-    # Hack to keep old structure for incremental architecture change
-    client_data_payload = add_token(client)  # Get dict of client data with added token
-    client_data_payload.update({"pairing_code": pairing_code})
-    return jsonify({"client": client_data_payload})
+    return {
+        "client_id": client_id,
+        "pairing_code": pairing_code,
+        "token": token,
+    }
 
 
-@bp.route("/pair/<pairing_code_ereader>")
-@auth_client
-def pair_with_ereader(client, pairing_code_ereader):
+@bp.route("/pair/<client_id>/<pairing_code_ereader>")
+def pair_with_ereader(client_id, pairing_code_ereader):
     "Pair two clients"
-    client_id_sender = client.id
-    channel = current_app.pairing_register.new_channel(
-        client_id_sender, pairing_code_ereader.lower()
+
+    channel_id, token = current_app.service.pair_with_ereader(
+        client_id, token_arg(), pairing_code_ereader
     )
-    return jsonify({"channel": add_token(channel)})
+    return {
+        "channel_id": channel_id,
+        "token": token,
+    }
 
 
-def add_token(data):
-    "Add token to data"
-    data = dataclasses.asdict(data)
-    data["token"] = encode(data)
-    return data
-
-
-def encode(payload):
-    "Create token from a payload"
-    return jwt.encode(payload, current_app.config["JWT_SECRET"], algorithm="HS256")
-
-
-def decode(token):
-    "Decode token and return payload"
-    return jwt.decode(token, current_app.config["JWT_SECRET"], algorithms=["HS256"])
-
-
-#
-#   Channels
-#
-
-
-@bp.route("/channels_for_ereader")
-@auth_client
-def channels_for_ereader(client):
+@bp.route("/channels_for/<client_id>")
+def channels_for_ereader(client_id):
     "Return the results of pairings for a client"
-    channels = current_app.pairing_register.channels_for(client.id)
-    # return channel_list_to_json(channels)
-    return jsonify({"channels": [add_token(c) for c in channels]})
+
+    channels = current_app.service.channels_for_client(client_id, token_arg())
+
+    return [
+        {
+            "channel_id": c["id"],
+            "token": c["token"],
+        }
+        for c in channels
+    ]
 
 
-def auth_channel(f):
-    "Authenticate client token for the route and store the client in g"
-
-    @wraps(f)
-    def decorator(*args, **kwargs):
-        token = request.args.get("token")
-        if not token:
-            return "No token provided", 400
-        payload = decode(token)
-        channel = Channel(**payload)
-        g.authenticated_channel = channel
-        return f(channel, *args, **kwargs)
-
-    return decorator
-
-
-@bp.route("/upload", methods=["POST"])
-@auth_channel
-def upload_file(channel):
+@bp.route("/upload/<channel_id>/<client_id>", methods=["POST"])
+def upload_file(channel_id, client_id):
     "Upload a file to the channel"
+
     current_app.logger.info("Uploading file")
+
     if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
+        return {"error": "No file part"}, 400
 
     raw_file = request.files["file"]
     if raw_file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+        return {"error": "No selected file"}, 400
 
     if raw_file:
         filename = secure_filename(raw_file.filename)
         file_content = raw_file.read()
-        current_app.file_register.add_file(
-            channel.channel_id, InMemoryEbookFile.make(name=filename, data=file_content)
+
+        current_app.service.store_file_for_channel(
+            channel_id, client_id, token_arg(), filename, file_content
         )
-        return jsonify({"message": "File uploaded successfully"}), 200
 
-    return jsonify({"error": "File type not allowed"}), 400
+        return {"message": "File uploaded successfully"}, 200
+
+    return {"error": "File type not allowed"}, 400
 
 
-@bp.route("/files")
-@auth_channel
-def get_files(channel):
+@bp.route("/files/<channel_id>/<client_id>")
+def get_files(channel_id, client_id):
     "Get all files for a channel"
-    file_ids = current_app.file_register.get_file_ids_for_channel(channel.channel_id)
-    file_descriptions = []
-    for file_id in file_ids:
-        file = current_app.file_register.get_file_for_channel(channel.channel_id, file_id)
-        size = file_size_string(file.size_bytes())
-        file_descriptions.append({"name": file.name, "id": file_id, "size": size})
-    return jsonify({"files": file_descriptions})
+
+    files = current_app.service.get_files_for_channel(channel_id, client_id, token_arg())
+
+    return [
+        {
+            "name": f["name"],
+            "size": f["size"],
+            "id": f["id"],
+        }
+        for f in files
+    ]

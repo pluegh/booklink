@@ -3,12 +3,14 @@ Entry point of flask application
 """
 
 from flask import Flask
+from booklink.application_service import ApplicationServiceConfig
 
 
 def create_app(test_config=None):
     "Create and configure the app"
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
+        APP_SERVICE_CONFIG=ApplicationServiceConfig(),
         SECRET_KEY="secrete-dev-key",
         JWT_SECRET="secret-jwt-key",
         MAX_CLIENTS_IN_PAIRING=100,

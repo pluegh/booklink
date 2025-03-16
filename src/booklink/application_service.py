@@ -1,0 +1,169 @@
+"""Combine all components to the application service layer.
+
+This layer presents a boundary and should be self-contained in terms of in- and outgoing
+data structures. Client code should import only the service layer.
+The service layer interfaces with code that makes the application service available.
+"""
+
+import dataclasses
+from typing import (
+    Any,
+    Tuple,
+    Dict,
+    List,
+    Optional,
+)
+
+from booklink.pair_devices import PairingRegister
+from booklink.client import Client
+from booklink.ebookfile import InMemoryEbookFile
+from booklink.storage import FileRegister
+from booklink.channel import Channel
+from booklink.utils import file_size_string
+from booklink.security import Authenticator
+
+
+@dataclasses.dataclass(frozen=True)
+class ApplicationServiceConfig:
+    "Configuration for the application service layer"
+
+    max_clients_in_pairing: int = 100
+
+    max_files_in_channel: int = 10
+    total_file_capacity_bytes: int = 1024 * 1024 * 100  # 100 MB
+    file_expiration_seconds = 60 * 10  # 10 minutes
+
+    client_expiration_seconds: int = 60 * 60 * 24  # 1 day
+    client_jwt_secret: str = "client-secret"
+    channel_jwt_secret: str = "channel-secret"
+
+
+class ApplicationService:
+    "The application service layer for the BookLink application."
+
+    def __init__(
+        self,
+        config: ApplicationServiceConfig,
+    ):
+        """Inits the application service."""
+        self.config = config
+        self.pairing_register = PairingRegister(
+            client_expiration_seconds=config.client_expiration_seconds,
+            max_clients_in_pairing=config.max_clients_in_pairing,
+        )
+        self.file_register = FileRegister(
+            max_files_in_channel=config.max_files_in_channel,
+            file_expiration_seconds=config.file_expiration_seconds,
+            max_total_file_size_bytes=config.total_file_capacity_bytes,
+            max_random_draws_file_id=10,
+        )
+        self.client_auth = Authenticator(jwt_secret=config.client_jwt_secret, id_factors={"id"})
+        self.channel_auth = Authenticator(
+            jwt_secret=config.channel_jwt_secret, id_factors={"channel_id", "client_id"}
+        )
+
+    def new_client(self, friendly_name: Optional[str] = None) -> Tuple[str, str, str]:
+        """Generate a new client for pairing.
+
+        Returns ID, pairing code, and authentification token.
+        """
+        pairing_code, client = self.pairing_register.new_client(friendly_name)
+        token = self.client_auth.token(client.created_at_unixutc, id=client.id)
+
+        return (client.id, pairing_code, token)
+
+    @staticmethod
+    def check_client_access():
+        """Decorator factory to protect a method with client authentication."""
+
+        def decorator(method):
+            def wrapper(self, *args, **kwargs):
+                self.client_auth.validate(token=args[1], id=args[0])
+                return method(self, *args, **kwargs)
+
+            return wrapper
+
+        return decorator
+
+    @staticmethod
+    def check_channel_access():
+        """Decorator factory to protect a method with channel authentication."""
+
+        def decorator(method):
+            def wrapper(self, *args, **kwargs):
+                self.channel_auth.validate(token=args[2], channel_id=args[0], client_id=args[1])
+                return method(self, *args, **kwargs)
+
+            return wrapper
+
+        return decorator
+
+    @check_client_access()
+    def pair_with_ereader(
+        self,
+        client_id: Client,
+        token: str,  # pylint: disable=unused-argument
+        pairing_code_ereader: str,
+    ) -> Channel:
+        """Create a channel for the client and the e-reader.
+
+        Returns ID, token for client
+        """
+        channel = self.pairing_register.new_channel(client_id, pairing_code_ereader.lower())
+        token = self.channel_auth.token(
+            channel.created_at_unixutc, channel_id=channel.channel_id, client_id=client_id
+        )
+
+        return (channel.channel_id, token)
+
+    @check_client_access()
+    def channels_for_client(
+        self,
+        client_id: str,
+        token: str,  # pylint: disable=unused-argument
+    ) -> List[Dict[str, str]]:
+        """Get a list of new channels available for a client"""
+        channels = self.pairing_register.channels_for(client_id)
+
+        return [
+            {
+                "id": c.channel_id,
+                "token": self.channel_auth.token(
+                    c.created_at_unixutc, channel_id=c.channel_id, client_id=client_id
+                ),
+            }
+            for c in channels
+        ]
+
+    @check_channel_access()
+    def store_file_for_channel(
+        self,
+        channel_id: str,
+        client_id: str,  # pylint: disable=unused-argument
+        token: str,  # pylint: disable=unused-argument
+        filename: str,
+        file_content: Any,
+    ) -> None:
+        """Store a file for a channel"""
+        self.file_register.add_file(
+            channel_id, InMemoryEbookFile.make(name=filename, data=file_content)
+        )
+
+    @check_channel_access()
+    def get_files_for_channel(
+        self,
+        channel_id: str,
+        client_id: str,  # pylint: disable=unused-argument
+        token: str,  # pylint: disable=unused-argument
+    ) -> List[Dict[str, str]]:
+        """Get a list of files for a channel"""
+        # files = self.file_register.get_files_for_channel(channel_id)
+
+        file_ids = self.file_register.get_file_ids_for_channel(channel_id)
+        file_descriptions = []
+        for file_id in file_ids:
+            file = self.file_register.get_file_for_channel(channel_id, file_id)
+            size = file_size_string(file.size_bytes())
+            file_descriptions.append({"name": file.name, "id": file_id, "size": size})
+
+        return file_descriptions
