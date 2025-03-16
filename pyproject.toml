@@ -10,7 +10,7 @@ authors = [
     {name = "Philip Carlo Lueghausen"}
 ]
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 classifiers = [
     "Programming Language :: Python :: 3",
