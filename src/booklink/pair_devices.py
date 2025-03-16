@@ -38,36 +38,28 @@ class PairingRegister:
         self.max_clients_in_pairing = max_clients_in_pairing
         self.max_random_draws = max_random_draws
 
-        self._clients_in_pairing = {}  # pairing_code -> Client
-        self._channels_for = {}  # pairing_code of e-reader -> channel
+        self._clients_in_pairing: dict[str, Client] = {}  # Access by pairing code
+        self._channels_for: dict[str, list[Channel]] = {}  # Access by client id
 
         self.__clients_lock = threading.Lock()
         self.__channels_lock = threading.Lock()
 
-    def new_client(self, friendly_name=None):
+    def new_client(self, friendly_name: str = None) -> tuple[str, Client]:
         "Generate a new client in the register"
-        code = self._unique_pairing_code()
-        client = Client.make(code, friendly_name=friendly_name or "")
-        self._clients_in_pairing.update({code: client})
-        # Peform pruning after adding the new client to avoid collisions
-        self.prune_expired_clients()
-        return client
+        pairing_code = self._unique_pairing_code()
+        client = Client.make(friendly_name=friendly_name or f"device-{pairing_code}")
+        self._clients_in_pairing.update({pairing_code: client})
+        self.prune_data()  # After adding the new client to avoid collisions
+        return pairing_code, client
 
-    def prune_expired_clients(self):
+    def prune_data(self):
         "Prune expired clients"
-        for client in list(self._clients_in_pairing.values()):
-            self.expire_client(client)
-
-    def expire_client(self, client: Client):
-        "Expire the given client if needed, removing it from the registers"
-        is_expired = False
         with self.__clients_lock:
-            if now_unixutc() - client.created_at_unixutc > self.client_expiration_seconds:
-                self._clients_in_pairing.pop(client.pairing_code)
-                is_expired = True
-        if is_expired:
-            self._channels_for.pop(client.pairing_code, None)
-        return is_expired
+            for pairing_code, client in self._clients_in_pairing.copy().items():
+                if now_unixutc() - client.created_at_unixutc > self.client_expiration_seconds:
+                    expired_client = self._clients_in_pairing.pop(pairing_code)
+                    with self.__channels_lock:
+                        self._channels_for.pop(expired_client.id, None)
 
     def _unique_pairing_code(self):
         "Generate a unique pairing code"
@@ -81,7 +73,7 @@ class PairingRegister:
                 return code
         raise RuntimeError("Failed to generate a unique pairing code")
 
-    def retrieve_client(self, pairing_code: str):
+    def get_client_by_pairing_code(self, pairing_code: str):
         "Get the client from the given pairing code"
         with self.__clients_lock:
             client = self._clients_in_pairing.get(pairing_code)
@@ -89,16 +81,24 @@ class PairingRegister:
             raise ClientNotFoundError(f"Client with pairing code {pairing_code} not found")
         return client
 
-    def new_channel(self, pairing_code_sender: str, pairing_code_ereader: str):
+    def new_channel(self, requester_client_id: str, pairing_code_ereader: str):
         "Pair sender device with e-reader"
-        client_sender = self.retrieve_client(pairing_code_sender)
-        client_ereader = self.retrieve_client(pairing_code_ereader)
+        client_sender = self.get_client_by_id(requester_client_id)
+        client_ereader = self.get_client_by_pairing_code(pairing_code_ereader)
 
         channel = Channel.make(
             self._unique_channel_id(), client_sender.friendly_name, client_ereader.friendly_name
         )
-        self.register_channel_for_ereader(pairing_code_ereader, channel)
+        self.register_channel_for_ereader(client_ereader.id, channel)
         return channel
+
+    def get_client_by_id(self, client_id: str):
+        "Get the client from the given id"
+        with self.__clients_lock:
+            for client in self._clients_in_pairing.values():
+                if client.id == client_id:
+                    return client
+        raise ClientNotFoundError(f"Client with id {client_id} not found")
 
     def register_channel_for_ereader(self, ereader_pairing_code: str, new_channel: Channel):
         "Register a channel for the given e-reader"
@@ -116,10 +116,10 @@ class PairingRegister:
                 return channel_id
         raise RuntimeError("Failed to generate a unique channel id")
 
-    def channels_for(self, pairing_code: str):
+    def channels_for(self, client_id: str):
         "Get the channel for the given pairing code"
         with self.__channels_lock:
-            return self._channels_for.get(pairing_code) or []
+            return self._channels_for.get(client_id, [])
 
     @property
     def all_clients_in_pairing(self):
@@ -129,7 +129,7 @@ class PairingRegister:
     def client_is_in_pairing(self, pairing_code: str):
         "Check if a client is in pairing process"
         try:
-            self.retrieve_client(pairing_code)
+            self.get_client_by_pairing_code(pairing_code)
             return True
         except ClientNotFoundError:
             return False
