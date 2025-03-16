@@ -93,6 +93,7 @@
         (function() {
             var CLIENT_EXPIRATION_MS = {{ client_expiration_seconds }} * 1000;
             var POLL_PAIRING_STATUS_S = {{ poll_pairing_status_seconds }} * 1000;
+            var client_id = null;
             var token = null;
             var pollingStarted = false;
 
@@ -105,10 +106,11 @@
                 xhr.onload = function() {
                     if (xhr.status === 200) {
                         handleStatus('fetch-code-success');
-                        var response = JSON.parse(xhr.responseText);
-                        token = response.client.token;
+                        var client_response = JSON.parse(xhr.responseText);
+                        client_id = client_response.client_id;
+                        token = client_response.token;
                         document.getElementById('pairingCode').textContent =
-                            response.client.pairing_code.toUpperCase();
+                            client_response.pairing_code.toUpperCase();
                         setTimeout(fetchPairingCode, CLIENT_EXPIRATION_MS);
                         startPollingPairingResults();
                     } else {
@@ -146,13 +148,13 @@
                 if (!token) return;
 
                 var xhr = new XMLHttpRequest();
-                xhr.open('GET', '/api/channels_for_ereader?token=' + token, true);
+                xhr.open('GET', '/api/channels_for/' + client_id + '?token=' + token, true);
                 
                 xhr.onload = function() {
                     if (xhr.status === 200) {
-                        var response = JSON.parse(xhr.responseText);
-                        var n_channels = response.channels.length;
-                        console.log(response);
+                        var channels_resp = JSON.parse(xhr.responseText);
+                        var n_channels = channels_resp.length;
+                        console.log(channels_resp);
                         setTimeout(pollPairingResults, POLL_PAIRING_STATUS_S);
                         document.getElementById('pairing-results').textContent = '– found ' + n_channels + ' channel(s)';
                     }

@@ -23,43 +23,6 @@ class RegisteredFile(abc.ABC):
         "Return the size of the file in bytes"
 
 
-class FilesPerChannel:
-    "List of files per channel with access by file ID"
-
-    def __init__(self) -> None:
-        self._files: dict[str, RegisteredFile] = {}  # file_id key
-
-    def add_file(self, file_id: str, file: RegisteredFile):
-        "Add a file to the list"
-        if file_id in self._files:
-            raise FileRegisterError("File ID already exists")
-        self._files.update({file_id: file})
-
-    def remove_file(self, file_id: str):
-        "Remove a file from the list"
-        if file_id not in self._files:
-            raise FileRegisterError("File ID not found")
-        self._files.pop(file_id)
-
-    def get_file(self, file_id: str):
-        "Get a file from the list"
-        if file_id not in self._files:
-            raise FileRegisterError("File ID not found")
-        return self._files[file_id]
-
-    def get_files(self):
-        "Get all files in the list"
-        return list(self._files.values())
-
-    def file_ids(self):
-        "Get all file IDs in the list"
-        return self._files.keys()
-
-    def total_size_bytes(self):
-        "Get the total size of all files in the list"
-        return sum(file.size_bytes() for file in self.get_files())
-
-
 class FileRegister:
     """Manage files available in a channel.
 
@@ -162,3 +125,40 @@ class FileRegister:
     def total_size_bytes(self):
         "Get the total size of all files in all channels"
         return sum(fpc.total_size_bytes() for fpc in self._files_per_channel.values())
+
+
+class FilesPerChannel:
+    "List of files per channel with access by file ID"
+
+    def __init__(self) -> None:
+        self._files: dict[str, RegisteredFile] = {}  # file_id key
+
+    def add_file(self, file_id: str, file: RegisteredFile):
+        "Add a file to the list"
+        if file_id in self._files:
+            raise FileRegisterError("File ID already exists")
+        self._files.update({file_id: file})
+
+    def remove_file(self, file_id: str):
+        "Remove a file from the list"
+        if file_id not in self._files:
+            raise FileRegisterError("File ID not found")
+        self._files.pop(file_id)
+
+    def get_file(self, file_id: str):
+        "Get a file from the list"
+        if file_id not in self._files:
+            raise FileRegisterError("File ID not found")
+        return self._files[file_id]
+
+    def get_files(self):
+        "Get all files in the list"
+        return list(self._files.values())
+
+    def file_ids(self):
+        "Get all file IDs in the list"
+        return self._files.keys()
+
+    def total_size_bytes(self):
+        "Get the total size of all files in the list"
+        return sum(file.size_bytes() for file in self.get_files())

@@ -61,6 +61,7 @@
         var submitButton = form.querySelector('button[type="submit"]');
         var codeInput = document.getElementById('pairingCode');
 
+        var client_id = null;
         var token = null;
 
         function updateStatus(status, message) {
@@ -91,8 +92,9 @@
                 
                 xhr.onload = function() {
                     if (xhr.status === 200) {
-                        var response = JSON.parse(xhr.responseText);
-                        token = response.client.token;
+                        var new_client_resp = JSON.parse(xhr.responseText);
+                        client_id = new_client_resp.client_id;
+                        token = new_client_resp.token;
                         updateStatus('success');
                         setTimeout(fetchPairingCode, EXPIRATION_MS);
                     } else {
@@ -112,7 +114,7 @@
         function addChannelToDisplay(channel) {
             var channelList = document.getElementById('channelList');
             var channelItem = document.createElement('li');
-            channelItem.textContent = channel.channel_id;
+            channelItem.textContent = "Created new channel";
             channelList.appendChild(channelItem);
         }
 
@@ -121,17 +123,17 @@
             submitButton.disabled = true;
 
             var xhr = new XMLHttpRequest();
-            var route = '/api/pair/' + codeInput.value + '?token=' + token;
+            var route = '/api/pair/' + client_id + '/' + codeInput.value + '?token=' + token;
             xhr.open('GET', route, true);
             console.log(route);
             
             xhr.onload = function() {
                 console.log(xhr)
                 if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    console.log(response);
+                    var pair_resp = JSON.parse(xhr.responseText);
+                    console.log(pair_resp);
                     updateStatus('success');
-                    addChannelToDisplay(response.channel);
+                    addChannelToDisplay(pair_resp);
                 } else {
                     updateStatus('error', 'Invalid code or connection failed');
                     submitButton.disabled = false;
