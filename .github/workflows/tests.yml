@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.11']  # Testing only old and current
+        python-version: ['3.11', '3.13']  # Test minimum and current
 
     steps:
     - uses: actions/checkout@v3
