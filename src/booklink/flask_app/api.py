@@ -60,20 +60,24 @@ def new_client():
     name = request.args.get("friendly_name") or ""
     current_app.logger.debug("New client request (from %s)", name or "unknown")
     try:
-        client = current_app.pairing_register.new_client(friendly_name=name)
+        pairing_code, client = current_app.pairing_register.new_client(friendly_name=name)
     except TooManyClientsError:
         current_app.logger.error("Deny new client due to too many clients")
         return "Too many clients in pairing process", 500
-    return jsonify({"client": add_token(client)})
+
+    # Hack to keep old structure for incremental architecture change
+    client_data_payload = add_token(client)  # Get dict of client data with added token
+    client_data_payload.update({"pairing_code": pairing_code})
+    return jsonify({"client": client_data_payload})
 
 
 @bp.route("/pair/<pairing_code_ereader>")
 @auth_client
 def pair_with_ereader(client, pairing_code_ereader):
     "Pair two clients"
-    pairing_code_sender = client.pairing_code
+    client_id_sender = client.id
     channel = current_app.pairing_register.new_channel(
-        pairing_code_sender.lower(), pairing_code_ereader.lower()
+        client_id_sender, pairing_code_ereader.lower()
     )
     return jsonify({"channel": add_token(channel)})
 
@@ -104,8 +108,7 @@ def decode(token):
 @auth_client
 def channels_for_ereader(client):
     "Return the results of pairings for a client"
-    pairing_code = client.pairing_code
-    channels = current_app.pairing_register.channels_for(pairing_code)
+    channels = current_app.pairing_register.channels_for(client.id)
     # return channel_list_to_json(channels)
     return jsonify({"channels": [add_token(c) for c in channels]})
 

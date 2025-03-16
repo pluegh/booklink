@@ -8,4 +8,4 @@ class TestClient:
 
     def test_generate_client(self):
         "Test instantiation of Client"
-        Client.make(pairing_code="xyz")
+        Client.make(friendly_name="Philip's Macbook Pro")
