@@ -1,6 +1,7 @@
 "Defines resources for pairing process"
 
 import threading
+from typing import Optional
 
 from booklink.channel import Channel
 from booklink.client import Client
@@ -44,7 +45,7 @@ class PairingRegister:
         self.__clients_lock = threading.Lock()
         self.__channels_lock = threading.Lock()
 
-    def new_client(self, friendly_name: str = None) -> tuple[str, Client]:
+    def new_client(self, friendly_name: Optional[str] = None) -> tuple[str, Client]:
         "Generate a new client in the register"
         pairing_code = self._unique_pairing_code()
         client = Client.make(friendly_name=friendly_name or f"device-{pairing_code}")
