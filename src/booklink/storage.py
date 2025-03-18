@@ -26,8 +26,8 @@ class RegisteredFile(abc.ABC):
 class FilesPerChannel:
     "List of files per channel with access by file ID"
 
-    def __init__(self):
-        self._files = {}  # file_id -> RegisteredFile
+    def __init__(self) -> None:
+        self._files: dict[str, RegisteredFile] = {}  # file_id key
 
     def add_file(self, file_id: str, file: RegisteredFile):
         "Add a file to the list"
@@ -79,7 +79,7 @@ class FileRegister:
         self.max_total_size_bytes = max_total_file_size_bytes
         self.max_random_draws_file_id = max_random_draws_file_id
 
-        self._files_per_channel = {}  # channel_id -> FilesPerChannel
+        self._files_per_channel: dict[str, FilesPerChannel] = {}  # channel_id key
         self.__files_per_channel_lock = threading.Lock()
 
     def add_file(self, channel_id: str, file: RegisteredFile):

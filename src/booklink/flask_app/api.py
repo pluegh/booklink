@@ -82,7 +82,7 @@ def pair_with_ereader(client, pairing_code_ereader):
     return jsonify({"channel": add_token(channel)})
 
 
-def add_token(data: dataclasses.dataclass):
+def add_token(data):
     "Add token to data"
     data = dataclasses.asdict(data)
     data["token"] = encode(data)

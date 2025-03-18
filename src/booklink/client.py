@@ -20,15 +20,16 @@ class Client:
     created_at_unixutc: float
     friendly_name: str
 
-    @staticmethod
+    @classmethod
     def make(
+        cls,
         friendly_name: str,
     ) -> Self:
         "Generate a client with the given pairing code"
         created_at_unixutc = now_unixutc()
         unique_client_id = f"{url_friendly_code(n_chars=5)}-{created_at_unixutc}"
 
-        return Client(
+        return cls(
             id=unique_client_id,
             created_at_unixutc=created_at_unixutc,
             friendly_name=friendly_name,
