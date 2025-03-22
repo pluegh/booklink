@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from booklink.storage import (
     RegisteredFile,
     FileRegister,
+    FileRegisterError,
 )
 from booklink.utils import now_unixutc
 
@@ -28,7 +29,12 @@ class TestFileRegister:
     @pytest.fixture
     def register(self):
         "Return a FileRegister instance"
-        yield FileRegister()
+        yield FileRegister(
+            max_files_in_channel=5,
+            file_expiration_seconds=100,
+            max_total_file_size_bytes=100,
+            max_random_draws_file_id=10,
+        )
 
     def test_add_file(self, register):
         "Test adding a file"
@@ -40,6 +46,28 @@ class TestFileRegister:
         res = register.get_files_for_channel("channel")
         assert res == files
         assert len(res) == len(files)
+
+    def test_number_of_files_limitation(self, register):
+        "Test that the number of files is limited"
+        n_files = 5
+        files = [
+            DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc()) for i in range(n_files)
+        ]
+        for file in files:
+            register.add_file("channel", file)
+
+        # Add one more file
+        with pytest.raises(FileRegisterError):
+            register.add_file("channel", DummyFile(file_id="id", created_at_unixutc=now_unixutc()))
+
+    def test_remove_file(self, register):
+        "When adding a file and removing it, the channel should be empty"
+        file = DummyFile(file_id="id", created_at_unixutc=now_unixutc())
+        file_id = register.add_file("channel", file)
+        assert len(register.get_files_for_channel("channel")) == 1
+
+        register.remove_file(file_id)
+        assert len(register.get_files_for_channel("channel")) == 0
 
     def test_prune_expired_files(self, register):
         "Test pruning expired files"

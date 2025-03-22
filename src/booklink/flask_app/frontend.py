@@ -25,56 +25,37 @@ def redirect_ereader_to_pair(f):
         for agent_id in agent_identifiers:
             if agent_id not in user_agent:
                 continue
-            return redirect(url_for(".pair", friendly_name=f"{agent_id} device", is_ereader="on"))
+            return redirect(url_for(".pair_ereader"))
         return f(*args, **kwargs)
 
     return decorated_function
 
 
 @bp.route("/")
+@redirect_ereader_to_pair
 def landing_page():
     "Render the landing page"
     return render_template("landing_page.html")
+
+
+@bp.route("/pair_ereader")
+def pair_ereader():
+    "Pairing route for e-reader"
+    return render_template(
+        "simple_pair.html",
+        client_expiration_seconds=current_app.config["CLIENT_EXPIRATION_SECONDS"],
+        poll_pairing_status_every=current_app.config["POLL_PAIRING_STATUS_EVERY"],
+    )
 
 
 @bp.route("/pair")
 def pair():
     "Pairing route"
 
-    # Autofill and contiunue if user is on e-reader
-    if "friendly_name" not in request.args:
-        user_agent = request.headers.get("User-Agent").lower()
-        print(f"User agent: {user_agent}")
-        agent_identifiers = agent_to_friendly_name.keys()
-        for agent_id in agent_identifiers:
-            if agent_id not in user_agent:
-                continue
-            url = url_for(
-                ".pair",
-                friendly_name=f"{agent_to_friendly_name.get(agent_id, 'unknown')}",
-                is_ereader="on",
-            )
-            print(f"Redirecting to {url}")
-            return redirect(url)
-
-    if "friendly_name" not in request.args:
-        return render_template(
-            "pair_configuration.html",
-            is_ereader_preselection=False,
-        )
-
-    if "is_ereader" in request.args:
-        # Only show code to enter on sender device
-        return render_template(
-            "simple_pair.html",
-            client_expiration_seconds=current_app.config["CLIENT_EXPIRATION_SECONDS"],
-            poll_pairing_status_seconds=current_app.config["POLL_PAIRING_STATUS_SECONDS"],
-        )
-
     # Only ask to enter code of e-reader device
     return render_template(
         "pair.html",
-        expiration_seconds=current_app.config["CLIENT_EXPIRATION_SECONDS"],
+        client_expiration_seconds=current_app.config["CLIENT_EXPIRATION_SECONDS"],
     )
 
 
@@ -84,13 +65,26 @@ agent_to_friendly_name = {
 }
 
 
-@bp.route("/receive")
-def receive():
+@bp.route("/receive/<channel_id>/<client_id>")
+def receive(channel_id, client_id):
     "Receive route"
-    return render_template("simple_receive.html")
+    return render_template(
+        "simple_receive.html",
+        channel_id=channel_id,
+        client_id=client_id,
+        token=request.args.get("token"),
+    )
 
 
-@bp.route("/send/<channel_token>")
-def send(channel_token):
+@bp.route("/send/<channel_id>/<client_id>")
+def send(channel_id, client_id):
     "Send route"
-    return render_template("send.html", channel_token=channel_token)
+    return render_template(
+        "send.html",
+        channel_id=channel_id,
+        client_id=client_id,
+        token=request.args.get("token"),
+        sender_name=request.args.get("sender") or "Sender Device",
+        ereader_name=request.args.get("ereader") or "E-Reader",
+        file_poll_interval=current_app.config["POLL_FILE_STATUS_EVERY"],
+    )
