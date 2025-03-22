@@ -19,7 +19,6 @@ from booklink.client import Client
 from booklink.ebookfile import InMemoryEbookFile
 from booklink.storage import FileRegister
 from booklink.channel import Channel
-from booklink.utils import file_size_string
 from booklink.security import Authenticator
 
 
@@ -27,15 +26,16 @@ from booklink.security import Authenticator
 class ApplicationServiceConfig:
     "Configuration for the application service layer"
 
+    client_jwt_secret: str
+    channel_jwt_secret: str
+
     max_clients_in_pairing: int = 100
 
-    max_files_in_channel: int = 10
-    total_file_capacity_bytes: int = 1024 * 1024 * 100  # 100 MB
-    file_expiration_seconds = 60 * 10  # 10 minutes
+    max_files_in_channel: int = 20
+    total_file_capacity_bytes: int = 1024 * 1024 * 100
+    file_expiration_seconds: float = 60 * 2
 
-    client_expiration_seconds: int = 60 * 60 * 24  # 1 day
-    client_jwt_secret: str = "client-secret"
-    channel_jwt_secret: str = "channel-secret"
+    client_expiration_seconds: float = 60 * 60 * 24
 
 
 class ApplicationService:
@@ -72,33 +72,14 @@ class ApplicationService:
 
         return (client.id, pairing_code, token)
 
-    @staticmethod
-    def check_client_access():
-        """Decorator factory to protect a method with client authentication."""
+    def verify_channel_claim(self, channel_id: str, client_id: str, token: str):
+        """Check if the client has access to the channel."""
+        self.channel_auth.validate(token=token, channel_id=channel_id, client_id=client_id)
 
-        def decorator(method):
-            def wrapper(self, *args, **kwargs):
-                self.client_auth.validate(token=args[1], id=args[0])
-                return method(self, *args, **kwargs)
+    def verify_client_claim(self, client_id: str, token: str):
+        """Check if the client has access."""
+        self.client_auth.validate(token=token, id=client_id)
 
-            return wrapper
-
-        return decorator
-
-    @staticmethod
-    def check_channel_access():
-        """Decorator factory to protect a method with channel authentication."""
-
-        def decorator(method):
-            def wrapper(self, *args, **kwargs):
-                self.channel_auth.validate(token=args[2], channel_id=args[0], client_id=args[1])
-                return method(self, *args, **kwargs)
-
-            return wrapper
-
-        return decorator
-
-    @check_client_access()
     def pair_with_ereader(
         self,
         client_id: Client,
@@ -109,6 +90,8 @@ class ApplicationService:
 
         Returns ID, token for client
         """
+        self.verify_client_claim(client_id, token)
+
         channel = self.pairing_register.new_channel(client_id, pairing_code_ereader.lower())
         token = self.channel_auth.token(
             channel.created_at_unixutc, channel_id=channel.channel_id, client_id=client_id
@@ -116,13 +99,14 @@ class ApplicationService:
 
         return (channel.channel_id, token)
 
-    @check_client_access()
     def channels_for_client(
         self,
         client_id: str,
         token: str,  # pylint: disable=unused-argument
     ) -> List[Dict[str, str]]:
         """Get a list of new channels available for a client"""
+        self.verify_client_claim(client_id, token)
+
         channels = self.pairing_register.channels_for(client_id)
 
         return [
@@ -135,7 +119,6 @@ class ApplicationService:
             for c in channels
         ]
 
-    @check_channel_access()
     def store_file_for_channel(
         self,
         channel_id: str,
@@ -143,27 +126,61 @@ class ApplicationService:
         token: str,  # pylint: disable=unused-argument
         filename: str,
         file_content: Any,
-    ) -> None:
+    ) -> str:
         """Store a file for a channel"""
-        self.file_register.add_file(
+        self.verify_channel_claim(channel_id, client_id, token)
+
+        file_id = self.file_register.add_file(
             channel_id, InMemoryEbookFile.make(name=filename, data=file_content)
         )
+        return file_id
 
-    @check_channel_access()
     def get_files_for_channel(
         self,
         channel_id: str,
-        client_id: str,  # pylint: disable=unused-argument
-        token: str,  # pylint: disable=unused-argument
+        client_id: str,
+        token: str,
     ) -> List[Dict[str, str]]:
         """Get a list of files for a channel"""
-        # files = self.file_register.get_files_for_channel(channel_id)
+        self.verify_channel_claim(channel_id, client_id, token)
 
         file_ids = self.file_register.get_file_ids_for_channel(channel_id)
         file_descriptions = []
         for file_id in file_ids:
             file = self.file_register.get_file_for_channel(channel_id, file_id)
-            size = file_size_string(file.size_bytes())
-            file_descriptions.append({"name": file.name, "id": file_id, "size": size})
+            size = file.size_bytes()
+            expires_at_unixutc = file.created_at_unixutc + self.config.file_expiration_seconds
+            file_descriptions.append(
+                {
+                    "name": file.name,
+                    "id": file_id,
+                    "size": size,
+                    "expires_at_unixutc": expires_at_unixutc,
+                }
+            )
 
         return file_descriptions
+
+    def get_file(
+        self,
+        channel_id: str,
+        client_id: str,  # pylint: disable=unused-argument
+        token: str,  # pylint: disable=unused-argument
+        file_id: str,
+    ) -> InMemoryEbookFile:
+        """Get a file for a channel"""
+        self.verify_channel_claim(channel_id, client_id, token)
+
+        return self.file_register.get_file_for_channel(channel_id, file_id)
+
+    def remove_file(
+        self,
+        channel_id: str,
+        client_id: str,
+        token: str,
+        file_id: str,
+    ):
+        """Remove a file from a channel"""
+        self.verify_channel_claim(channel_id, client_id, token)
+
+        self.file_register.remove_file(file_id)
