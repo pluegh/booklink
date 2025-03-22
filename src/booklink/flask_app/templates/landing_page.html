@@ -2,35 +2,92 @@
 
 {% block content %}
 <div id="landingView" class="view active">
-    <main class="max-w-5xl mx-auto px-4 py-12">
-        <div class="text-center mb-12">
-            <h2 class="text-4xl font-bold text-gray-900 mb-4">Welcome to BookLink</h2>
-            <p class="text-xl text-gray-600">Transfer e-books to your e-reader with ease</p>
-        </div>
-        <div class="flex flex-row justify-center gap-8 mb-12">
-            <div class="bg-white p-6 rounded-lg shadow-sm">
-                <h3 class="text-xl font-semibold mb-4">How it works</h3>
-                <ol class="space-y-4">
-                    <li class="flex items-start">
-                        <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 mr-3">1</span>
-                        <p>Open BookLink on both devices and connect them using the pairing code</p>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 mr-3">1</span>
-                        <p>Create a bookmark to remember the device connection</p>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-600 mr-3">3</span>
-                        <p>Select and transfer books between devices</p>
-                    </li>
-                </ol>
+    <!-- Hero section with two clear actions -->
+    <div class="bg-gradient-to-b from-primary/10 pt-12 pb-16">
+        <div class="max-w-5xl max-width mx-auto px-10">
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <!-- Text content -->
+                <div class="md:w-1/2 text-center md:text-left">
+                    <h2 class="text-3xl font-bold text-base-content mb-4">Welcome to BookLink</h2>
+                    <p class="text-lg text-base-content/70 mb-6">Connect your e-reader easily, no cables required.</p>
+
+                    <!-- Two clear action buttons -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button onclick="location.href='{{ url_for('frontend.pair') }}'" class="btn btn-primary">
+                            Pair Devices
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simple book illustration -->
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="relative w-64 h-64">
+                        <!-- Main book with shadow -->
+                        <div class="absolute top-6 left-6 w-48 h-56 bg-primary rounded-r-md rounded-b-md shadow-lg transform rotate-6"></div>
+
+                        <!-- Second book -->
+                        <div class="absolute top-0 left-0 w-48 h-56 bg-base-100 border-2 border-primary/30 rounded-r-md rounded-b-md shadow-md transform -rotate-3 flex items-center justify-center">
+                            <svg class="h-16 w-16 text-primary/40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                        </div>
+
+                        <!-- Connection line animation -->
+                        <svg class="absolute top-28 left-48 h-8 w-20 text-primary" viewBox="0 0 80 32">
+                            <path d="M0,16 C20,8 60,24 80,16" stroke="currentColor" stroke-width="3" stroke-dasharray="6,3" fill="none">
+                                <animate attributeName="stroke-dashoffset" from="9" to="0" dur="1.5s" repeatCount="indefinite" />
+                            </path>
+                        </svg>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="text-center">
-            <button onclick="location.href='{{ url_for('frontend.pair') }}'" class="bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800 transition-colors">
-                Start Pairing Devices
-            </button>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-4 py-12 -mt-6">
+        <!-- Key features section highlighting security and ease of use -->
+        <div class="card bg-base-100 shadow-sm border border-base-200 mb-12">
+            <div class="card-body">
+                <h3 class="text-xl font-semibold mb-6">Key Features</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Feature 1: Reusable connection -->
+                    <div class="flex flex-col">
+                        <div class="flex items-center mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                            <h4 class="font-medium">One-Time Pairing</h4>
+                        </div>
+                        <p class="text-base-content/70 text-sm">Pair your devices once and reuse the connection anytime</p>
+                    </div>
+
+                    <!-- Feature 2: No permanent storage -->
+                    <div class="flex flex-col">
+                        <div class="flex items-center mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 1H4v8h12V6zM4 4h12v1H4V4zM3 16a1 1 0 011-1h4a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            <h4 class="font-medium">No Permanent Storage</h4>
+                        </div>
+                        <p class="text-base-content/70 text-sm">Files are only stored in memory during transfer, never saved to disk</p>
+                    </div>
+
+                    <!-- Feature 3: No user data -->
+                    <div class="flex flex-col">
+                        <div class="flex items-center mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 005 16a5 5 0 0010 0c0-.34-.035-.67-.102-.987A5.001 5.001 0 0010 11z" clip-rule="evenodd" />
+                            </svg>
+                            <h4 class="font-medium">No Registration</h4>
+                        </div>
+                        <p class="text-base-content/70 text-sm">No user data collected, no account creation required</p>
+                    </div>
+                </div>
+            </div>
         </div>
+
     </main>
 </div>
 {% endblock %}

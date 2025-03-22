@@ -11,13 +11,7 @@ class TestClientHandling:
     @pytest.fixture
     def app(self):
         "Return the flask app"
-        app = booklink.flask_app.create_app(
-            {
-                "TESTING": True,
-                "JWT_SECRET": "secret",
-                "MAX_CLIENTS_IN_PAIRING": 10,
-            }
-        )
+        app = booklink.flask_app.create_app()
         yield app
 
     def test_landing_page(self, app):

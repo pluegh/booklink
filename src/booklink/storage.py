@@ -45,7 +45,7 @@ class FileRegister:
         self._files_per_channel: dict[str, FilesPerChannel] = {}  # channel_id key
         self.__files_per_channel_lock = threading.Lock()
 
-    def add_file(self, channel_id: str, file: RegisteredFile):
+    def add_file(self, channel_id: str, file: RegisteredFile) -> str:
         "Add a file to the channel (slow method)."
 
         # Perform pruning when adding a new file
@@ -58,8 +58,23 @@ class FileRegister:
             if channel_id not in self._files_per_channel:
                 self._files_per_channel[channel_id] = FilesPerChannel()
 
+            if self._files_per_channel[channel_id].number_of_files() >= self.max_files_in_channel:
+                raise FileRegisterError("Cannot add file to channel (max files reached)")
+
             file_id = self._generate_unique_file_id()
             self._files_per_channel[channel_id].add_file(file_id, file)
+
+        return file_id
+
+    def remove_file(self, file_id: str) -> None:
+        "Remove a file from the channel"
+        with self.__files_per_channel_lock:
+            for channel in self._files_per_channel.values():
+                if file_id in channel.file_ids():
+                    channel.remove_file(file_id)
+                    return
+
+        raise FileRegisterError("File ID not found")
 
     def _generate_unique_file_id(self):
         "Generate a unique file ID"
@@ -132,6 +147,10 @@ class FilesPerChannel:
 
     def __init__(self) -> None:
         self._files: dict[str, RegisteredFile] = {}  # file_id key
+
+    def number_of_files(self) -> int:
+        "Get the number of files in the list"
+        return len(self._files)
 
     def add_file(self, file_id: str, file: RegisteredFile):
         "Add a file to the list"

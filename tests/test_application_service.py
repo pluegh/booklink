@@ -13,6 +13,8 @@ class TestApplicationService:
     def app_config(self):
         "Return an ApplicationServiceConfig for testing"
         yield ApplicationServiceConfig(
+            client_jwt_secret="test_secret",
+            channel_jwt_secret="test_secret",
             max_clients_in_pairing=10,
             max_files_in_channel=10,
             client_expiration_seconds=60 * 60 * 24,  # 1 day
@@ -95,3 +97,19 @@ class TestApplicationService:
 
         files = app.get_files_for_channel(channel_id, client_id_b, channel_token_b)
         assert len(files) == 3
+
+    def test_get_file(self, app):
+        """Test retrieving a file"""
+        client_id_a, code_a, token_a = app.new_client("Alice")
+        client_id_b, code_b, token_b = app.new_client("Bob")
+
+        channel_id, channel_token_a = app.pair_with_ereader(client_id_a, token_a, code_b)
+        channel_token_b = app.channels_for_client(client_id_b, token_b)[0]["token"]
+
+        file_id = app.store_file_for_channel(
+            channel_id, client_id_a, channel_token_a, "test_file_name", b"test_file_content"
+        )
+
+        file = app.get_file(channel_id, client_id_b, channel_token_b, file_id)
+        assert file.name == "test_file_name"
+        assert file.data.read() == b"test_file_content"

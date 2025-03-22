@@ -8,7 +8,13 @@ from dataclasses import dataclass
 import pytest
 
 import booklink.flask_app
-from booklink.application_service import ApplicationServiceConfig
+
+
+class TestConfig(booklink.flask_app.BaseConfig):
+    "FlaskConfig for testing"
+
+    SECRET_KEY = "test_secret"
+    MAX_CLIENTS_IN_PAIRING = 10
 
 
 class TestClientHandling:
@@ -17,15 +23,7 @@ class TestClientHandling:
     @pytest.fixture
     def app(self):
         "Return the flask app"
-        app = booklink.flask_app.create_app(
-            {
-                "TESTING": True,
-                "JWT_SECRET": "secret",
-                "APP_SERVICE_CONFIG": ApplicationServiceConfig(
-                    max_clients_in_pairing=10,
-                ),
-            }
-        )
+        app = booklink.flask_app.create_app(TestConfig=TestConfig)
         yield app
 
     def test_new_client(self, app):
@@ -78,13 +76,7 @@ class TestChannelHandling:
     @pytest.fixture
     def app_with_paired_users(self):
         "Return app with paired users and associated data"
-        app = booklink.flask_app.create_app(
-            {
-                "TESTING": True,
-                "JWT_SECRET": "secret",
-                "MAX_CLIENTS_IN_PAIRING": 10,
-            }
-        )
+        app = booklink.flask_app.create_app(TestConfig=TestConfig)
 
         with app.test_client() as client:
             user_a = client.get("/api/new_client").get_json()
@@ -171,5 +163,5 @@ class TestChannelHandling:
             data = get_files_res.get_json()
             assert len(data) == 1
             assert data[0]["name"] == "test_file_name"
-            assert data[0]["size"] == "17.0B"
+            assert data[0]["size"] == 17
             assert data[0]["id"] is not None
