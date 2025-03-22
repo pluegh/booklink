@@ -1,156 +1,290 @@
 {% extends "base.html" %}
 
-{% block title %}Upload Books{% endblock %}
+{% block title %}Send to Device | BookLink{% endblock %}
 
 {% block extra_head %}
 <style>
-.drop-zone.dragover {
-    @apply bg-blue-50 border-blue-500;
-}
+    .upload-area {
+        border: 2px dashed #CBD5E0;
+        transition: all 0.3s ease;
+    }
+    .upload-area:hover, .upload-area.dragover {
+        border-color: #4299E1;
+        background-color: #EBF8FF;
+    }
+    .progress-bar {
+        transition: width 0.3s ease;
+    }
+    .timer-bar {
+        transition: width 0.1s linear;
+    }
+    .connection-status {
+        background-color: #F9FAFB;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<main class="max-w-5xl mx-auto p-6">
-    <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Upload Books</h2>
-        
-        <div id="uploadZone" class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
-            <input type="file" id="fileInput" multiple class="hidden" accept=".epub,.pdf">
-            <p class="text-gray-600 mb-2">Drag & drop files here or</p>
-            <button onclick="document.getElementById('fileInput').click()" 
-                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                Select Files
-            </button>
-            <p class="text-sm text-gray-500 mt-2">Maximum file size: 10MB</p>
+<main class="max-w-5xl mx-auto py-8 px-4">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Send to Device</h2>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left column (2/3 width): Primary Upload Action -->
+        <div class="lg:col-span-2">
+            <!-- Upload Files - Primary Action -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-blue-500">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Upload eBooks to Your Device</h3>
+
+                <div class="upload-area rounded-lg p-8 text-center cursor-pointer bg-blue-50" id="upload-area">
+                    <svg class="mx-auto h-16 w-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="mt-4 text-base font-medium text-gray-900">Drag and drop files here, or click to browse</p>
+                    <p class="mt-2 text-sm text-gray-600">Supported formats: .epub, .mobi, .pdf, .azw, .txt</p>
+                    <button class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium">Browse Files</button>
+                    <input type="file" id="file-upload" class="hidden" multiple accept=".epub,.mobi,.pdf,.azw,.txt">
+                </div>
+
+                <!-- Upload Queue - Initially hidden, shown when files are selected -->
+                <div class="mt-6 hidden" id="upload-queue">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">Files to Upload</h4>
+
+                    {% if upload_files %}
+                        {% for file in upload_files %}
+                        <div class="bg-gray-50 rounded p-3 mb-2">
+                            <div class="flex justify-between items-center mb-1">
+                                <div class="flex items-center">
+                                    <svg class="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-900 truncate" style="max-width: 250px;">{{ file.name }}</span>
+                                </div>
+                                <span class="text-xs text-gray-500">{{ file.size }}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-blue-600 h-1.5 rounded-full progress-bar" style="width: {{ file.progress }}%"></div>
+                            </div>
+                            <div class="flex justify-between mt-1">
+                                <span class="text-xs text-gray-500">{{ file.progress }}%</span>
+                                <button class="text-xs text-red-600 hover:text-red-800" data-file-id="{{ file.id }}">Cancel</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Example file for mockup purposes -->
+                        <div class="bg-gray-50 rounded p-3 mb-2">
+                            <div class="flex justify-between items-center mb-1">
+                                <div class="flex items-center">
+                                    <svg class="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-900 truncate" style="max-width: 250px;">the_great_gatsby.epub</span>
+                                </div>
+                                <span class="text-xs text-gray-500">2.3 MB</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-blue-600 h-1.5 rounded-full progress-bar" style="width: 70%"></div>
+                            </div>
+                            <div class="flex justify-between mt-1">
+                                <span class="text-xs text-gray-500">70%</span>
+                                <button class="text-xs text-red-600 hover:text-red-800">Cancel</button>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="flex justify-between mt-4">
+                        <div>
+                            <span class="text-sm text-gray-600">{{ file_count }} files selected</span>
+                            <span class="text-sm text-gray-400 mx-2">•</span>
+                            <span class="text-sm text-gray-600">{{ total_size }} total</span>
+                        </div>
+                        <div>
+                            <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md text-sm font-medium mr-2" id="cancel-all">Cancel</button>
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium" id="send-files">Send to Device</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <ul id="fileList" class="space-y-2"></ul>
-        
-        <div id="messages" class="mt-4"></div>
+        <!-- Right column (1/3 width): Status Information -->
+        <div class="lg:col-span-1">
+            <!-- Connection Status -->
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-6 connection-status">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">Connection Status</h3>
 
-        <button id="uploadButton" 
-                class="hidden mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-                disabled>
-            Upload Files
-        </button>
+                {% if is_connected %}
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0 h-3 w-3 rounded-full bg-green-500 mr-2"></div>
+                    <p class="text-sm font-medium text-gray-900">Connected</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Device</p>
+                        <p class="text-sm text-gray-900">{{ device_name }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Connection Time</p>
+                        <p class="text-sm text-gray-900">{{ connection_time }}</p>
+                    </div>
+
+                    {% if available_storage %}
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Available Storage</p>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                            <div class="bg-gray-500 h-1.5 rounded-full" style="width: {{ storage_percentage }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-700 mt-1">{{ available_storage }} free of {{ total_storage }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="flex items-center p-4 bg-yellow-50 rounded-lg">
+                    <div class="flex-shrink-0 h-3 w-3 rounded-full bg-yellow-500 mr-2 animate-pulse"></div>
+                    <p class="text-sm text-yellow-800">Waiting for device connection...</p>
+                </div>
+                <div class="mt-4 text-xs text-center text-gray-500">
+                    <p>Make sure your device is turned on and</p>
+                    <p>within range of your computer.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Help/Information Panel -->
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">How It Works</h3>
+                <ol class="text-xs text-gray-600 space-y-2 pl-5 list-decimal">
+                    <li>Upload your eBook files using the upload area</li>
+                    <li>Files will be sent to your connected device</li>
+                    <li>Books will be available for 24 hours</li>
+                    <li>Use your device to open and read the books</li>
+                </ol>
+                <div class="mt-4 pt-3 border-t border-gray-200">
+                    <h4 class="text-xs font-medium text-gray-700 mb-2">Need Help?</h4>
+                    <a href="#" class="text-xs text-blue-600 hover:text-blue-800 block">Troubleshooting Connection Issues</a>
+                    <a href="#" class="text-xs text-blue-600 hover:text-blue-800 block mt-1">Supported eBook Formats</a>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const uploadZone = document.getElementById('uploadZone');
-const fileInput = document.getElementById('fileInput');
-const fileList = document.getElementById('fileList');
-const uploadButton = document.getElementById('uploadButton');
-const messages = document.getElementById('messages');
-const maxFileSize = 10 * 1024 * 1024;
+    var channel_id = {{channel_id}};
+    var client_id = {{client_id}};
+    var token = {{token}};
 
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-    uploadZone.addEventListener(event, preventDefault);
-    document.body.addEventListener(event, preventDefault);
-});
+    // File upload area interaction
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-upload');
+    const uploadQueue = document.getElementById('upload-queue');
 
-function preventDefault(e) {
-    e.preventDefault();
-    e.stopPropagation();
-}
-
-['dragenter', 'dragover'].forEach(event => {
-    uploadZone.addEventListener(event, () => uploadZone.classList.add('dragover'));
-});
-
-['dragleave', 'drop'].forEach(event => {
-    uploadZone.addEventListener(event, () => uploadZone.classList.remove('dragover'));
-});
-
-uploadZone.addEventListener('drop', handleDrop);
-fileInput.addEventListener('change', handleFiles);
-
-function handleDrop(e) {
-    handleFiles({ target: { files: e.dataTransfer.files } });
-}
-
-function handleFiles(e) {
-    const files = [...e.target.files];
-    fileList.innerHTML = '';
-    messages.innerHTML = '';
-    
-    files.forEach(file => {
-        if (file.size > maxFileSize) {
-            showMessage(`${file.name} is too large (max 10MB)`, 'error');
-            return;
-        }
-        
-        const li = document.createElement('li');
-        li.className = 'flex items-center space-x-4 bg-gray-50 p-3 rounded';
-        li.innerHTML = `
-            <div class="flex-1">
-                <div class="font-medium">${file.name}</div>
-                <div class="text-sm text-gray-500">${(file.size / 1024).toFixed(1)} KB</div>
-                <div class="h-1 w-full bg-gray-200 rounded overflow-hidden">
-                    <div class="progress h-full bg-blue-600 w-0 transition-all"></div>
-                </div>
-            </div>
-            <button onclick="this.closest('li').remove(); updateUploadButton()" 
-                    class="text-gray-500 hover:text-gray-700">
-                ✕
-            </button>
-        `;
-        fileList.appendChild(li);
+    // Show file selection dialog when clicking the upload area or browse button
+    uploadArea.addEventListener('click', () => {
+        fileInput.click();
     });
-    
-    updateUploadButton();
-}
 
-function updateUploadButton() {
-    const hasFiles = fileList.children.length > 0;
-    uploadButton.style.display = hasFiles ? 'block' : 'none';
-    uploadButton.disabled = !hasFiles;
-}
+    document.querySelector('button.bg-blue-600').addEventListener('click', (e) => {
+        e.preventDefault();
+        fileInput.click();
+    });
 
-function showMessage(text, type) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    div.className = type === 'error' ? 'text-red-600' : 'text-green-600';
-    messages.appendChild(div);
-}
+    // Handle drag and drop styling
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, e => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+    });
 
-uploadButton.addEventListener('click', () => {
-    uploadButton.disabled = true;
-    const items = [...fileList.children];
-    
-    items.forEach((item, index) => {
-        const formData = new FormData();
-        formData.append('file', fileInput.files[index]);
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, e => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+    });
 
-        const xhr = new XMLHttpRequest();
-        const progressBar = item.querySelector('.progress');
+    // Handle file selection
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            uploadQueue.classList.remove('hidden');
+            // Here you would normally process the selected files
+            // and submit them to your backend
+        }
+    });
 
-        xhr.upload.addEventListener('progress', e => {
-            if (e.lengthComputable) {
-                const percent = (e.loaded / e.total) * 100;
-                progressBar.style.width = percent + '%';
+    // Delete book functionality
+    document.querySelectorAll('button[data-book-id]').forEach(button => {
+        button.addEventListener('click', function() {
+            const bookId = this.getAttribute('data-book-id');
+            if (confirm('Are you sure you want to remove this book from the device?')) {
+                // Here you would send a request to delete the book
+                // For example: fetch(`/api/books/${bookId}`, { method: 'DELETE' });
+                console.log(`Deleting book ${bookId}`);
             }
         });
+    });
 
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    showMessage(`${fileInput.files[index].name} uploaded successfully`, 'success');
-                } else {
-                    showMessage(`Error uploading ${fileInput.files[index].name}`, 'error');
-                }
-                if (index === items.length - 1) {
-                    uploadButton.disabled = false;
+    // Cancel upload functionality
+    document.querySelectorAll('button[data-file-id]').forEach(button => {
+        button.addEventListener('click', function() {
+            const fileId = this.getAttribute('data-file-id');
+            // Here you would cancel the upload process
+            console.log(`Cancelling upload for file ${fileId}`);
+            this.closest('.bg-gray-50').remove();
+        });
+    });
+
+    // Cancel all uploads
+    document.getElementById('cancel-all')?.addEventListener('click', () => {
+        if (confirm('Cancel all uploads?')) {
+            // Here you would cancel all uploads
+            uploadQueue.classList.add('hidden');
+        }
+    });
+
+    // Send files to device
+    document.getElementById('send-files')?.addEventListener('click', () => {
+        // Here you would submit all files to be sent to the device
+        alert('Sending files to device...');
+        // Reset the upload form after successful upload
+        setTimeout(() => {
+            uploadQueue.classList.add('hidden');
+            fileInput.value = '';
+        }, 1500);
+    });
+
+    // Update timer bars (for demonstration in mockup)
+    function updateTimers() {
+        document.querySelectorAll('.timer-bar').forEach(bar => {
+            const currentWidth = parseFloat(bar.style.width) || 0;
+            if (currentWidth > 0) {
+                const newWidth = currentWidth - 0.01;
+                bar.style.width = `${Math.max(0, newWidth)}%`;
+
+                // Update color based on time remaining
+                const parent = bar.closest('td');
+                if (parent) {
+                    const timeSpan = parent.querySelector('span');
+                    if (newWidth < 20) {
+                        bar.classList.remove('bg-yellow-500', 'bg-green-500');
+                        bar.classList.add('bg-red-500');
+                        // Could also update the time text here
+                    } else if (newWidth < 50) {
+                        bar.classList.remove('bg-green-500', 'bg-red-500');
+                        bar.classList.add('bg-yellow-500');
+                    }
                 }
             }
-        };
-        var channel_id = 'test-xxx';
-        xhr.open('POST', '/api/upload/' + channel_id, true);
-        xhr.send(formData);
-    });
-});
+        });
+    }
+
+    // Update timers every few seconds (only for mockup/demo)
+    setInterval(updateTimers, 5000);
 </script>
 {% endblock %}

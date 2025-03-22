@@ -62,6 +62,19 @@ class ApplicationService:
             jwt_secret=config.channel_jwt_secret, id_factors={"channel_id", "client_id"}
         )
 
+    def get_config(self) -> Dict[str, Any]:
+        """Expose configuration parameters to the client.
+
+        Some parameters are configure only the frontend, but are listed here for simplicity.
+        """
+        backend_config = {
+            "client_expiration_seconds": self.config.client_expiration_seconds,
+        }
+        frontend_config = {
+            "poll_pairing_status_seconds": 1,
+        }
+        return {**backend_config, **frontend_config}
+
     def new_client(self, friendly_name: Optional[str] = None) -> Tuple[str, str, str]:
         """Generate a new client for pairing.
 

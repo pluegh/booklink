@@ -42,6 +42,12 @@ def new_client():
     }
 
 
+@bp.route("/config")
+def get_config():
+    "Get the configuration for the client"
+    return current_app.service.get_config()
+
+
 @bp.route("/pair/<client_id>/<pairing_code_ereader>")
 def pair_with_ereader(client_id, pairing_code_ereader):
     "Pair two clients"
@@ -51,6 +57,7 @@ def pair_with_ereader(client_id, pairing_code_ereader):
     )
     return {
         "channel_id": channel_id,
+        "client_id": client_id,
         "token": token,
     }
 

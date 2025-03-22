@@ -28,6 +28,17 @@ class TestClientHandling:
         )
         yield app
 
+    def test_get_config(self, app):
+        """When config is requested
+        Then a dictionary with string keys is returned"""
+        with app.test_client() as client:
+            res = client.get("/api/config")
+            assert res.status_code == 200
+            data = res.get_json()
+            assert isinstance(data, dict)
+            for key in data:
+                assert isinstance(key, str)
+
     def test_new_client(self, app):
         "Test new client generation"
         with app.test_client() as client:
