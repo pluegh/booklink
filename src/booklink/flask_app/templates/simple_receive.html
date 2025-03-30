@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+        }
+        .page-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        .content-table {
+            width: 96%;
+            max-width: 800px;
+            border-spacing: 0;
+            margin: 0 auto 0;
+            flex: 1;
+        }
+        .content-table th {
+            border-bottom: 2px solid;
+            height: 10vh;
+        }
+        .main-content {
+            text-align: center;
+            height: 400px;
+        }
+        .subtitle {
+            font-size: 20px;
+            margin: 24px 0;
+        }
+        .code-box {
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px auto 35px;
+            max-width: 350px;
+            font-size: 46px;
+            letter-spacing: 15px;
+            font-weight: bold;
+        }
+        .logo-cell {
+            width: 80px;
+            padding: 15px;
+        }
+        .title-text-cell {
+            text-align: left;
+            padding: 15px 0;
+        }
+        .status-cell {
+            text-align: right;
+            margin-right: 0px;
+        }
+        .title-text-cell h1 {
+            font-size: 32px;
+            margin: 0;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: right;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #000;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .file-button {
+            display: block;
+            width: 100%;
+            max-width: 600px;
+            margin: 10px auto;
+            padding: 20px;
+            border: 2px solid #000;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 18px;
+            text-decoration: none;
+            color: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-info {
+            display: flex;
+            align-items: center;
+        }
+        .file-icon {
+            margin-right: 15px;
+        }
+        .file-size {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        #files-section, #loading-section {
+            width: 100%;
+        }
+        #loading-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        .section-title {
+            font-size: 32px;
+            margin: 10px 0 25px;
+        }
+        .footer {
+            text-align: center;
+            padding: 1px;
+            margin-top: 30px;
+            font-size: 14px;
+        }
+        .horizontal-divider {
+            border-top: 1px solid #000;
+            width: 70%;
+            margin: 30px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <table class="content-table">
+            <tr>
+                <th class="logo-cell">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </th>
+                <th class="title-text-cell">
+                    <h1 class="font-semibold">BookLink</h1>
+                </th>
+            </tr>
+            <tr>
+                <td colspan="2" class="main-content">
+                    <div id="loading-section">
+                        <h2 class="section-title">
+                            Loading files...
+                        </h2>
+                    </div>
+                    <div id="files-section" style="display: none;">
+                        <h2 class="section-title">
+                            Available Files
+                        </h2>
+                        <p class="subtitle">
+                            Files shared with you appear here
+                        </p>
+                        <div id="files-container">
+                            <!-- files list -->
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr class="footer">
+                <td colspan="2">
+                    github.com/pluegh | {{ config["GIT_REVISION_BRANCH"] }} | {{ config["GIT_REVISION_HASH"] }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        window.AppConfig = {
+            channelId: {{ channel_id | safe | tojson }},
+            clientId: {{ client_id | safe | tojson }},
+            token: {{ token | safe | tojson }}
+        };
+    </script>
+
+    <script>
+        (function() {
+            // Get parameters from AppConfig
+            function getParams() {
+                return {
+                    channelId: window.AppConfig.channelId,
+                    clientId: window.AppConfig.clientId,
+                    token: window.AppConfig.token,
+                    pollInterval: 3,
+                };
+            }
+
+            // Format file size to be readable
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+
+                var k = 1024;
+                var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                var i = Math.floor(Math.log(bytes) / Math.log(k));
+
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // Get file icon (simple version that fits with template)
+            function getFileIcon() {
+                return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>' +
+                    '<path d="M14 2v6h6"></path>' +
+                    '</svg>';
+            }
+
+            // Fetch files from API
+            function fetchFiles() {
+                var params = getParams();
+
+                if (!params.channelId || !params.clientId || !params.token) {
+                    showError('Missing required parameters');
+                    return;
+                }
+
+                var url = '/api/files/' + params.channelId + '/' + params.clientId + '?token=' + params.token;
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            var files = JSON.parse(xhr.responseText);
+                            displayFiles(files, params);
+
+                            setTimeout(fetchFiles, params.pollInterval * 1000);
+                        } else {
+                            showError('Failed to fetch files: ' + xhr.status);
+                        }
+                    }
+                };
+
+                xhr.onerror = function() {
+                    showError('Network error occurred');
+                };
+
+                xhr.send();
+            }
+
+            // Display files in the container
+            function displayFiles(files, params) {
+                document.getElementById('loading-section').style.display = 'none';
+                document.getElementById('files-section').style.display = 'block';
+                files = files.reverse();
+
+                var container = document.getElementById('files-container');
+
+                if (files.length === 0) {
+                    container.innerHTML = '<p>No files available</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    var downloadUrl = '/' + encodeURIComponent(file.name) +
+                        '?file_id=' + file.id +
+                        '&channel_id=' + params.channelId +
+                        '&client_id=' + params.clientId +
+                        '&token=' + params.token;
+
+                    var fileButton = document.createElement('a');
+                    fileButton.href = downloadUrl;
+                    fileButton.className = 'file-button';
+                    fileButton.innerHTML =
+                        '<div class="file-info">' +
+                            '<div class="file-icon">' + getFileIcon() + '</div>' +
+                            '<div>' +
+                                '<div class="file-name">' + file.name + '</div>' +
+                                '<div class="file-size">' + formatFileSize(file.size) + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div>Download</div>';
+
+                    container.appendChild(fileButton);
+                }
+            }
+
+            // Show error message
+            function showError(message) {
+                document.getElementById('loading-section').innerHTML =
+                    '<h2 class="section-title">' +
+                        'Error' +
+                    '</h2>' +
+                    '<p class="subtitle">' +
+                        message +
+                    '</p>';
+            }
+
+            // Initialize
+            fetchFiles();
+        })();
+    </script>
+</body>
+</html>
