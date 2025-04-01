@@ -1,4 +1,4 @@
-"""Smoke test for the frontend."""
+"""Smoke test for the frontend, checking if the templates can be rendered"""
 
 import pytest
 
@@ -37,3 +37,27 @@ class TestClientHandling:
             assert res.status_code == 200
             assert res.content_type == "text/html; charset=utf-8"
             assert b"Enter this code on your other device for pairing" in res.data
+
+    def test_send(self, app):
+        "Test send endpoint"
+        with app.test_client() as client:
+            # Incorrect credentials make api queries fail, but frontend should render
+            channel_id = "test_channel"
+            client_id = "test_client"
+            token = "test_token"
+            res = client.get(f"/send/{channel_id}/{client_id}?token={token}")
+            assert res.status_code == 200
+            assert res.content_type == "text/html; charset=utf-8"
+            assert b"Send to Device" in res.data
+
+    def test_receive(self, app):
+        "Test receive endpoint"
+        with app.test_client() as client:
+            # Incorrect credentials make api queries fail, but frontend should render
+            channel_id = "test_channel"
+            client_id = "test_client"
+            token = "test_token"
+            res = client.get(f"/send/{channel_id}/{client_id}?token={token}")
+            assert res.status_code == 200
+            assert res.content_type == "text/html; charset=utf-8"
+            # No specific text to check for, just that it renders
