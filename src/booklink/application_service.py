@@ -33,9 +33,9 @@ class ApplicationServiceConfig:
 
     max_files_in_channel: int = 20
     total_file_capacity_bytes: int = 1024 * 1024 * 100
-    file_expiration_seconds: float = 60 * 2
+    file_expiration: float = 60 * 2
 
-    client_expiration_seconds: float = 60 * 60 * 24
+    client_expiration: float = 60 * 60 * 24
 
 
 class ApplicationService:
@@ -48,12 +48,12 @@ class ApplicationService:
         """Inits the application service."""
         self.config = config
         self.pairing_register = PairingRegister(
-            client_expiration_seconds=config.client_expiration_seconds,
+            client_expiration_seconds=config.client_expiration,
             max_clients_in_pairing=config.max_clients_in_pairing,
         )
         self.file_register = FileRegister(
             max_files_in_channel=config.max_files_in_channel,
-            file_expiration_seconds=config.file_expiration_seconds,
+            file_expiration_seconds=config.file_expiration,
             max_total_file_size_bytes=config.total_file_capacity_bytes,
             max_random_draws_file_id=10,
         )
@@ -149,7 +149,7 @@ class ApplicationService:
         for file_id in file_ids:
             file = self.file_register.get_file_for_channel(channel_id, file_id)
             size = file.size_bytes()
-            expires_at_unixutc = file.created_at_unixutc + self.config.file_expiration_seconds
+            expires_at_unixutc = file.created_at_unixutc + self.config.file_expiration
             file_descriptions.append(
                 {
                     "name": file.name,

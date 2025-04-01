@@ -17,7 +17,7 @@ class TestApplicationService:
             channel_jwt_secret="test_secret",
             max_clients_in_pairing=10,
             max_files_in_channel=10,
-            client_expiration_seconds=60 * 60 * 24,  # 1 day
+            client_expiration=60 * 60 * 24,  # 1 day
         )
 
     @pytest.fixture

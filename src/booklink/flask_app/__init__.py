@@ -15,7 +15,6 @@ def create_app(TestConfig=None) -> Flask:  # pylint: disable=C0103
     app = Flask(__name__, instance_relative_config=True)
 
     Config = TestConfig or get_config_from_env()  # pylint: disable=C0103
-
     app.config.from_object(Config)
     Config.init_app(app)
 
@@ -40,8 +39,8 @@ def attach_service(app: Flask):
         channel_jwt_secret=app.config["SECRET_KEY"],
         max_clients_in_pairing=app.config["MAX_CLIENTS_IN_PAIRING"],
         max_files_in_channel=app.config["MAX_FILES_IN_CHANNEL"],
-        client_expiration_seconds=app.config["CLIENT_EXPIRATION_SECONDS"],
-        file_expiration_seconds=app.config["FILE_EXPIRATION"],
+        client_expiration=app.config["CLIENT_EXPIRATION"],
+        file_expiration=app.config["FILE_EXPIRATION"],
     )
 
     setattr(app, "service", ApplicationService(service_config))
@@ -53,7 +52,7 @@ class BaseConfig:
     SECRET_KEY: str | None
     MAX_CLIENTS_IN_PAIRING: int = 100
     MAX_FILES_IN_CHANNEL: int = 20
-    CLIENT_EXPIRATION_SECONDS: float = 60 * 60
+    CLIENT_EXPIRATION: float = 60 * 60
     FILE_EXPIRATION: float = 60 * 60
     POLL_PAIRING_STATUS_EVERY: float = 3
     POLL_FILE_STATUS_EVERY: float = 3
@@ -75,7 +74,6 @@ class DevConfig(BaseConfig):
     "Configuration for the flask app in development"
 
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-key"
-    SERVER_NAME = "localhost:5001"
 
 
 class ProdConfig(BaseConfig):

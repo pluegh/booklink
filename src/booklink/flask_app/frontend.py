@@ -43,7 +43,7 @@ def pair_ereader():
     "Pairing route for e-reader"
     return render_template(
         "simple_pair.html",
-        client_expiration_seconds=current_app.config["CLIENT_EXPIRATION_SECONDS"],
+        client_expiration_seconds=current_app.config["CLIENT_EXPIRATION"],
         poll_pairing_status_every=current_app.config["POLL_PAIRING_STATUS_EVERY"],
     )
 
@@ -55,7 +55,7 @@ def pair():
     # Only ask to enter code of e-reader device
     return render_template(
         "pair.html",
-        client_expiration_seconds=current_app.config["CLIENT_EXPIRATION_SECONDS"],
+        client_expiration_seconds=current_app.config["CLIENT_EXPIRATION"],
     )
 
 
