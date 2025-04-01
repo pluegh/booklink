@@ -41,6 +41,7 @@ def attach_service(app: Flask):
         max_clients_in_pairing=app.config["MAX_CLIENTS_IN_PAIRING"],
         max_files_in_channel=app.config["MAX_FILES_IN_CHANNEL"],
         client_expiration_seconds=app.config["CLIENT_EXPIRATION_SECONDS"],
+        file_expiration_seconds=app.config["FILE_EXPIRATION"],
     )
 
     setattr(app, "service", ApplicationService(service_config))
@@ -53,6 +54,7 @@ class BaseConfig:
     MAX_CLIENTS_IN_PAIRING: int = 100
     MAX_FILES_IN_CHANNEL: int = 20
     CLIENT_EXPIRATION_SECONDS: float = 60 * 60
+    FILE_EXPIRATION: float = 60 * 60
     POLL_PAIRING_STATUS_EVERY: float = 3
     POLL_FILE_STATUS_EVERY: float = 3
     GIT_REVISION_HASH: str = get_git_revision_short_hash()
