@@ -33,16 +33,21 @@
         <!-- Left column (2/3 width): Primary Upload Action -->
         <div class="lg:col-span-2">
             <!-- Upload Files - Primary Action -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-blue-500">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Upload eBooks to Your Device</h3>
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-t border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg class="h-5 w-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9"></path>
+                    </svg>
+                    Upload eBooks to Your Device
+                </h3>
 
-                <div class="upload-area rounded-lg p-8 text-center cursor-pointer bg-blue-50" id="upload-area">
-                    <svg class="mx-auto h-16 w-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="upload-area rounded-lg p-8 text-center cursor-pointer bg-gray-50 border border-dashed border-gray-300 hover:bg-gray-100 transition duration-150" id="upload-area">
+                    <svg class="mx-auto h-16 w-16 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                     </svg>
-                    <p class="mt-4 text-base font-medium text-gray-900">Drag and drop files here, or click to browse</p>
+                    <p class="mt-4 text-base font-medium text-gray-900">Click browse files or drop here</p>
                     <p class="mt-2 text-sm text-gray-600">Supported formats: .epub, .mobi, .pdf, .azw, .txt</p>
-                    <button type="button" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium" id="browse-btn">Browse Files</button>
+                    <button type="button" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md text-sm font-medium shadow-sm transition duration-150" id="browse-btn">Browse Files</button>
                     <input type="file" id="file-upload" class="hidden" multiple accept=".epub,.mobi,.pdf,.azw,.txt">
                 </div>
 
@@ -50,29 +55,36 @@
                 <div class="mt-6 hidden" id="upload-queue">
                     <h4 class="text-sm font-medium text-gray-700 mb-3">Files to Upload</h4>
 
-                    <div id="files-container">
+                    <div id="files-container" class="bg-gray-50 rounded-md p-2">
                         <!-- Files will be dynamically added here -->
                     </div>
 
-                    <div class="flex justify-between mt-4">
-                        <div>
-                            <span class="text-sm text-gray-600" id="file-count">0 files selected</span>
-                            <span class="text-sm text-gray-400 mx-2">•</span>
-                            <span class="text-sm text-gray-600" id="total-size">0 KB total</span>
+                    <div class="flex flex-col sm:flex-row sm:justify-between mt-4 gap-4">
+                        <div class="order-2 sm:order-1">
+                            <div class="flex flex-wrap items-center">
+                                <span class="text-sm text-gray-600 mr-2" id="file-count">0 files selected</span>
+                                <span class="text-sm text-gray-400 mr-2">•</span>
+                                <span class="text-sm text-gray-600" id="total-size">0 KB total</span>
+                            </div>
                         </div>
-                        <div>
-                            <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md text-sm font-medium mr-2" id="cancel-all">Cancel</button>
-                            <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium" id="send-files">Send to Device</button>
+                        <div class="order-1 sm:order-2 flex">
+                            <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md text-sm font-medium mr-2 transition duration-150 flex-1 sm:flex-none" id="cancel-all">Cancel</button>
+                            <button type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition duration-150 flex-1 sm:flex-none" id="send-files">Send to Device</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- File List - Shows files available on the channel -->
-            <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+            <div class="bg-white rounded-lg shadow-lg p-6 border-t border-gray-100">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Available Files</h3>
-                    <button type="button" class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center" id="refresh-files">
+                    <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Available Files
+                    </h3>
+                    <button type="button" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center transition duration-150" id="refresh-files">
                         <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
@@ -84,7 +96,7 @@
                     <div class="py-3 text-center text-sm text-gray-500" id="no-files-message">
                         Loading files...
                     </div>
-                    <ul class="divide-y divide-gray-200" id="files-list">
+                    <ul class="divide-y divide-gray-200 bg-gray-50 rounded-md" id="files-list">
                         <!-- Files will be dynamically added here -->
                     </ul>
                 </div>
@@ -94,12 +106,17 @@
         <!-- Right column (1/3 width): Status Information -->
         <div class="lg:col-span-1">
             <!-- Connection Status -->
-            <div class="bg-white rounded-lg shadow-sm p-4 mb-6 connection-status hidden"> <!-- Hide while not implemented -->
-                <h3 class="text-sm font-medium text-gray-700 mb-3">Connection Status</h3>
+            <div class="bg-white rounded-lg shadow-md p-5 mb-6 connection-status hidden"> <!-- Hide while not implemented -->
+                <h3 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                    <svg class="h-4 w-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Connection Status
+                </h3>
 
                 <div id="connected-status" class="{% if not is_connected %}hidden{% endif %}">
                     <div class="flex items-center mb-4">
-                        <div class="flex-shrink-0 h-3 w-3 rounded-full bg-green-500 mr-2"></div>
+                        <div class="flex-shrink-0 h-3 w-3 rounded-full bg-indigo-500 mr-2"></div>
                         <p class="text-sm font-medium text-gray-900">Connected</p>
                     </div>
 
@@ -112,12 +129,12 @@
                 </div>
 
                 <div>
-                    <div id="for-status-disconnected" class="flex items-center p-4 rounded-lg hidden">
-                        <div class="flex-shrink-0 h-3 w-3 rounded-full bg-yellow-500 mr-2 animate-pulse"></div>
-                        <p class="text-sm text-yellow-800">Waiting for device connection...</p>
+                    <div id="for-status-disconnected" class="flex items-center p-4 rounded-lg bg-gray-50 hidden">
+                        <div class="flex-shrink-0 h-3 w-3 rounded-full bg-amber-500 mr-2 animate-pulse"></div>
+                        <p class="text-sm text-gray-800">Waiting for device connection...</p>
                     </div>
-                    <div id="for-status-connected" class="flex items-center p-4 rounded-lg">
-                        <div class="flex-shrink-0 h-3 w-3 rounded-full bg-green-500 mr-2"></div>
+                    <div id="for-status-connected" class="flex items-center p-4 rounded-lg bg-gray-50">
+                        <div class="flex-shrink-0 h-3 w-3 rounded-full bg-indigo-500 mr-2"></div>
                         <p class="text-sm text-gray-800">Connection live</p>
                     </div>
                     <div class="mt-4 text-xs text-center text-gray-500">
@@ -127,17 +144,27 @@
             </div>
 
             <!-- Help/Information Panel -->
-            <div class="bg-gray-50 rounded-lg p-4">
-                <h3 class="text-sm font-medium text-gray-700 mb-2">How It Works</h3>
-                <ol class="text-xs text-gray-600 space-y-2 pl-5 list-decimal">
-                    <li>Upload your eBook files using the upload area</li>
-                    <li>Files will be uploaded to your connected device</li>
+            <div class="bg-white rounded-lg shadow-md p-5">
+                <h3 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                    <svg class="h-4 w-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    How It Works
+                </h3>
+                <ol class="text-xs text-gray-600 space-y-3 pl-5 list-decimal">
+                    <li class="pb-2">Upload your eBook files using the upload area</li>
+                    <li class="pb-2">Files will be uploaded to your connected device</li>
                     <li>Download the files on your other device</li>
                 </ol>
                 <div class="mt-4 pt-3 border-t border-gray-200">
-                    <h4 class="text-xs font-medium text-gray-700 mb-2">Need Help?</h4>
-                    <a href="#" class="text-xs text-blue-600 hover:text-blue-800 block">Troubleshooting Connection Issues</a>
-                    <a href="#" class="text-xs text-blue-600 hover:text-blue-800 block mt-1">Supported eBook Formats</a>
+                    <h4 class="text-xs font-medium text-gray-700 mb-2 flex items-center">
+                        <svg class="h-3 w-3 mr-1 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Need Help?
+                    </h4>
+                    <a href="#" class="text-xs text-indigo-600 hover:text-indigo-800 block py-1 transition duration-150">Troubleshooting Connection Issues</a>
+                    <a href="#" class="text-xs text-indigo-600 hover:text-indigo-800 block py-1 transition duration-150">Supported eBook Formats</a>
                 </div>
             </div>
         </div>
@@ -430,26 +457,35 @@
                         data.forEach(file => {
                             const li = document.createElement('li');
                             li.className = 'py-3 flex justify-between items-center hover:bg-gray-50';
+                            const url = `/${file.name}?channel_id=${config.channelId}&client_id=${config.clientId}&token=${config.token}&file_id=${file.id}`;
                             li.innerHTML = `
-                                <div class="flex items-center">
-                                    <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="flex flex-wrap justify-between items-center w-full gap-2 px-4">
+                                    <div class="flex items-center min-w-0 max-w-full">
+                                        <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                    <span class="text-sm font-medium text-gray-900 truncate max-w-xs" title="${file.name}">${file.name}</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <span class="text-xs text-gray-500 mr-3">${formatSize(file.size)}</span>
-                                    <span class="text-xs text-amber-600 mr-3">
+                                        </svg>
+                                        <a href="${url}" class="text-sm font-medium text-gray-900 truncate" title="${file.name}" download>${file.name}</a>
+                                    </div>
+
+                                    <div class="flex items-center flex-shrink-0 w-full">
+                                        <span class="text-xs text-gray-500 mr-3 whitespace-nowrap">${formatSize(file.size)}</span>
+
+                                        <span class="text-xs text-amber-600 mr-3 whitespace-nowrap flex items-center w-18">
                                         <svg class="inline-block h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                         <span data-expires-at="${file.expires_at_unixutc}" class="expires-timer">Calculating...</span>
-                                    </span>
-                                    <button type="button" class="text-xs text-red-600 hover:text-red-800" data-file-id="${file.id}">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
+                                        </span>
+
+                                        <button type="button" class="text-xs text-red-600 hover:text-red-800 flex items-center" data-file-id="${file.id}">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                            <span class="ml-1">
+                                                delete now
+                                            </span>
+                                        </button>
+                                    </div>
                                 </div>
                             `;
 
@@ -490,7 +526,7 @@
             } else if (hours > 0) {
                 return `${hours}h ${minutes}m`;
             } else if (minutes > 0) {
-                return `${minutes}m ${seconds}s`;
+                return `${minutes}m`;
             } else {
                 return `${seconds}s`;
             }
@@ -508,7 +544,7 @@
                 element.textContent = formatTimeRemaining(remainingSeconds);
 
                 // Add color coding based on urgency
-                if (remainingSeconds <= 300) { // 5 minutes
+                if (remainingSeconds <= 60) {
                     element.classList.remove('text-amber-600');
                     element.classList.add('text-red-600', 'font-medium');
                 } else if (remainingSeconds <= 3600) { // 1 hour
