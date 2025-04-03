@@ -81,11 +81,11 @@ def upload_file(channel_id, client_id):
 
     if raw_file:
         filename = secure_filename(raw_file.filename)
-        file_content = raw_file.read()
+        data_buffer = BytesIO(raw_file.read())
 
         try:
             current_app.service.store_file_for_channel(
-                channel_id, client_id, token_arg(), filename, file_content
+                channel_id, client_id, token_arg(), filename, data_buffer
             )
         except Exception:  # pylint: disable=broad-except
             return {"error": "Cannot store file"}, 400
@@ -139,7 +139,7 @@ def download_file(file_name):  # pylint: disable=unused-argument
     # Copy file since flask will close the file after sending
     sending_buffer = BytesIO()
     sending_buffer.write(file.data.read())
-    sending_buffer.seek(0)
+    file.data.seek(0)  # Reset file buffer after read
 
     return send_file(
         sending_buffer,

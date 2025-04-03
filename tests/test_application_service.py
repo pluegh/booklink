@@ -1,3 +1,4 @@
+import io
 import pytest
 
 from booklink.application_service import (
@@ -75,7 +76,7 @@ class TestApplicationService:
         channel_id, channel_token_a = app.pair_with_ereader(client_id_a, token_a, code_b)  # pylint: disable=unused-variable
 
         app.store_file_for_channel(
-            channel_id, client_id_a, channel_token_a, "test_file_name", b"test_file_content"
+            channel_id, client_id_a, channel_token_a, "test.epub", io.BytesIO(b"test_file_content")
         )
 
     def test_get_files_for_channel(self, app):
@@ -91,8 +92,8 @@ class TestApplicationService:
                 channel_id,
                 client_id_a,
                 channel_token_a,
-                f"test_file_name_{i}",
-                b"test_file_content",
+                f"test_{i}.epub",
+                io.BytesIO(b"test_file_content"),
             )
 
         files = app.get_files_for_channel(channel_id, client_id_b, channel_token_b)
@@ -107,9 +108,9 @@ class TestApplicationService:
         channel_token_b = app.channels_for_client(client_id_b, token_b)[0]["token"]
 
         file_id = app.store_file_for_channel(
-            channel_id, client_id_a, channel_token_a, "test_file_name", b"test_file_content"
+            channel_id, client_id_a, channel_token_a, "test.epub", io.BytesIO(b"test_file_content")
         )
 
         file = app.get_file(channel_id, client_id_b, channel_token_b, file_id)
-        assert file.name == "test_file_name"
+        assert file.name == "test.epub"
         assert file.data.read() == b"test_file_content"

@@ -1,6 +1,6 @@
-import pytest
-
 from dataclasses import dataclass
+
+import pytest
 
 from booklink.storage import (
     RegisteredFile,
