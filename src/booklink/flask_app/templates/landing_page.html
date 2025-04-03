@@ -2,94 +2,139 @@
 
 {% block content %}
 <div id="landingView" class="view active">
-    <!-- Hero section with two clear actions -->
-    <div class="bg-gradient-to-b from-primary/10 pt-12 pb-16">
-        <div class="max-w-5xl max-width mx-auto px-10">
-            <div class="flex flex-col md:flex-row items-center gap-8">
-                <!-- Text content -->
-                <div class="md:w-1/2 text-center md:text-left">
-                    <h2 class="text-3xl font-bold text-base-content mb-4">Welcome to BookLink</h2>
-                    <p class="text-lg text-base-content/70 mb-6">Connect your e-reader easily, no cables required.</p>
+    <!-- Hero section with free-flowing connection in light mode -->
+    <div class="relative pt-16 pb-6">
 
-                    <!-- Two clear action buttons -->
+        <div class="absolute inset-0 z-0 w-full h-full overflow-hidden sm:visible invisible">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 350" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                    <linearGradient id="fluidGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#6366f1" />
+                        <stop offset="50%" stop-color="#8b5cf6" />
+                        <stop offset="100%" stop-color="#a78bfa" />
+                    </linearGradient>
+                </defs>
+
+                <path d="M0,250
+                      C200,150 400,300 600,250
+                      C800,200 850,300 927,250
+                      C970,220 1000,150 927,150
+                      C870,150 850,220 927,250
+                      C1000,280 1150,200 1300,250
+                      C1400,280 1450,250 1500,250"
+                   fill="none"
+                   stroke="url(#fluidGradient)"
+                   stroke-width="40"
+                   stroke-linecap="round"
+                   opacity="0.3" />
+            </svg>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-6 relative z-10">
+            <div class="flex flex-col md:flex-row items-center">
+                <!-- Text content adapted for light mode -->
+                <div class="md:w-1/2 text-center md:text-left">
+                    <h2 class="text-5xl font-bold mb-6 text-gray-900">Welcome to <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">BookLink</span></h2>
+                    <p class="text-xl font-semibold text-gray-700 mb-8 leading-relaxed">
+                        Connect your e-reader easily,
+                        <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">no cables</span>
+                        required.
+                    </p>
+
+                    <!-- Bold action button -->
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <button onclick="location.href='{{ url_for('frontend.pair') }}'" class="btn btn-primary">
+                        <button onclick="location.href='{{ url_for('frontend.pair') }}'" class="bold-btn px-8 py-3 text-lg">
                             Pair Devices
                         </button>
                     </div>
                 </div>
 
-                <!-- Simple book illustration -->
-                <div class="md:w-1/2 flex justify-center">
-                    <div class="relative w-64 h-64">
-                        <!-- Main book with shadow -->
-                        <div class="absolute top-6 left-6 w-48 h-56 bg-primary rounded-r-md rounded-b-md shadow-lg transform rotate-6"></div>
-
-                        <!-- Second book -->
-                        <div class="absolute top-0 left-0 w-48 h-56 bg-base-100 border-2 border-primary/30 rounded-r-md rounded-b-md shadow-md transform -rotate-3 flex items-center justify-center">
-                            <svg class="h-16 w-16 text-primary/40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                            </svg>
-                        </div>
-
-                        <!-- Connection line animation -->
-                        <svg class="absolute top-28 left-48 h-8 w-20 text-primary" viewBox="0 0 80 32">
-                            <path d="M0,16 C20,8 60,24 80,16" stroke="currentColor" stroke-width="3" stroke-dasharray="6,3" fill="none">
-                                <animate attributeName="stroke-dashoffset" from="9" to="0" dur="1.5s" repeatCount="indefinite" />
-                            </path>
-                        </svg>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 
-    <main class="max-w-5xl mx-auto px-4 py-12 -mt-6">
-        <!-- Key features section highlighting security and ease of use -->
-        <div class="card bg-base-100 shadow-sm border border-base-200 mb-12">
-            <div class="card-body">
-                <h3 class="text-xl font-semibold mb-6">Key Features</h3>
+    <main class="max-w-6xl mx-auto px-6 pt-16">
+        <!-- Key features section with light mode aesthetics -->
+        <div class="card bg-white shadow-lg mb-12 border border-gray-100">
+            <div class="card-body p-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Feature 1: Reusable connection -->
+                    {% set features = [
+                        {
+                            "svg_path": "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z",
+                            "headline": "No Jailbreak Needed",
+                            "description": "Works with all e-readers with a browser, no jailbreak needed"
+                        },
+                        {
+                            "svg_path": "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z",
+                            "headline": "No Registration",
+                            "description": "No user data collected, no account creation required"
+                        },
+                        {
+                            "svg_path": "M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z",
+                            "headline": "No Permanent Storage",
+                            "description": "Files are only stored in memory during transfer, never saved to disk"
+                        },
+                        {
+                            "svg_path": "M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244",
+                            "headline": "One-Time Pairing",
+                            "description": "Pair your devices once and reuse the secure connection anytime"
+                        },
+                        {
+                            "svg_path": "M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5",
+                            "headline": "Free and Open Source",
+                            "description": "BookLink is completely free to use and open source for transparency and collaboration"
+                        },
+                        {
+                            "svg_path": "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z",
+                            "headline": "Made with Love",
+                            "description": "Crafted with care and passion for ebooks and software"
+                        }
+                    ] %}
+                    {% for feature in features %}
                     <div class="flex flex-col">
                         <div class="flex items-center mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6 text-indigo-600 mr-3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ feature.svg_path }}"/>
                             </svg>
-                            <h4 class="font-medium">One-Time Pairing</h4>
+                            <h4 class="font-medium text-lg text-gray-900">{{ feature.headline }}</h4>
                         </div>
-                        <p class="text-base-content/70 text-sm">Pair your devices once and reuse the connection anytime</p>
+                        <p class="text-gray-600">{{ feature.description }}</p>
                     </div>
+                    {% endfor %}
 
-                    <!-- Feature 2: No permanent storage -->
-                    <div class="flex flex-col">
-                        <div class="flex items-center mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 1H4v8h12V6zM4 4h12v1H4V4zM3 16a1 1 0 011-1h4a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-                            </svg>
-                            <h4 class="font-medium">No Permanent Storage</h4>
-                        </div>
-                        <p class="text-base-content/70 text-sm">Files are only stored in memory during transfer, never saved to disk</p>
-                    </div>
-
-                    <!-- Feature 3: No user data -->
-                    <div class="flex flex-col">
-                        <div class="flex items-center mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 005 16a5 5 0 0010 0c0-.34-.035-.67-.102-.987A5.001 5.001 0 0010 11z" clip-rule="evenodd" />
-                            </svg>
-                            <h4 class="font-medium">No Registration</h4>
-                        </div>
-                        <p class="text-base-content/70 text-sm">No user data collected, no account creation required</p>
-                    </div>
                 </div>
             </div>
         </div>
-
     </main>
 </div>
+
+<style>
+    .text-transparent {
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* Bold button styling */
+    .bold-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .bold-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(99, 102, 241, 0.4);
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
