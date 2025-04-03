@@ -136,7 +136,7 @@ class TestChannelHandling:
             upload_res = client.post(
                 f"/api/upload/{fixture.channel_id}/{fixture.client_id_a}"
                 f"?token={fixture.channel_token_a}",
-                data={"file": (io.BytesIO(b"test_file_content"), "test_file_name")},
+                data={"file": (io.BytesIO(b"test_file_content"), "test.epub")},
             )
             assert upload_res.get_json() == {"message": "File uploaded successfully"}
 
@@ -149,7 +149,7 @@ class TestChannelHandling:
             upload_res = client.post(
                 f"/api/upload/{fixture.channel_id}"
                 f"/{fixture.client_id_a}?token={fixture.channel_token_a}",
-                data={"file": (io.BytesIO(b"test_file_content"), "test_file_name")},
+                data={"file": (io.BytesIO(b"test_file_content"), "test.epub")},
             )
             assert upload_res.get_json() == {"message": "File uploaded successfully"}
 
@@ -162,6 +162,6 @@ class TestChannelHandling:
             assert get_files_res.status_code == 200
             data = get_files_res.get_json()
             assert len(data) == 1
-            assert data[0]["name"] == "test_file_name"
+            assert data[0]["name"] == "test.epub"
             assert data[0]["size"] == 17
             assert data[0]["id"] is not None

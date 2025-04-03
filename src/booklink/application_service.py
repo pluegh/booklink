@@ -130,9 +130,8 @@ class ApplicationService:
         """Store a file for a channel"""
         self.verify_channel_claim(channel_id, client_id, token)
 
-        file_id = self.file_register.add_file(
-            channel_id, InMemoryEbookFile.make(name=filename, data=file_content)
-        )
+        file = InMemoryEbookFile.make(name=filename, data=file_content)
+        file_id = self.file_register.add_file(channel_id, file)
         return file_id
 
     def get_files_for_channel(
