@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    paths: ['**.py', 'pyproject.toml', '.github/workflows/tests.yml']
+    paths: ['**.py', '**.html', 'pyproject.toml', '.github/workflows/tests.yml']
 
 jobs:
   test:

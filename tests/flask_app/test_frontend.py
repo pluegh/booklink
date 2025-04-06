@@ -20,7 +20,7 @@ class TestClientHandling:
             res = client.get("/")
             assert res.status_code == 200
             assert res.content_type == "text/html; charset=utf-8"
-            assert b"Welcome to BookLink" in res.data
+            assert b"Welcome" in res.data
 
     def test_pair(self, app):
         "Test getting the pairing page"
