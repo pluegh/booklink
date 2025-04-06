@@ -33,7 +33,7 @@ class TestFileRegister:
             max_files_in_channel=5,
             file_expiration_seconds=100,
             max_total_file_size_bytes=100,
-            max_random_draws_file_id=10,
+            max_random_draws=10,
         )
 
     def test_add_file(self, register):

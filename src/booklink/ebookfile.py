@@ -21,6 +21,17 @@ class BookMetadata:
     date: str
     identifier: str
 
+    @classmethod
+    def empty(cls):
+        "Create metadata with empty strings"
+        return cls(
+            title="",
+            author="",
+            language="",
+            date="",
+            identifier="",
+        )
+
 
 @dataclasses.dataclass
 class InMemoryEbookFile(RegisteredFile):

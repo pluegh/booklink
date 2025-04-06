@@ -1,5 +1,7 @@
 """
 Provides the API backend.
+
+This module translates the service layer to the flask routes.
 """
 
 from io import BytesIO
@@ -7,8 +9,15 @@ from io import BytesIO
 from flask import Blueprint, current_app, request, send_file
 from werkzeug.utils import secure_filename
 
+from booklink.application_service import ApplicationService
+
 
 bp = Blueprint("api", __name__, url_prefix="")
+
+
+def app_service() -> ApplicationService:
+    "Get the service from the current app"
+    return current_app.service  # type: ignore[attr-defined]
 
 
 def token_arg():
@@ -26,14 +35,14 @@ def new_client():
     name = request.args.get("friendly_name") or ""
 
     try:
-        client_id, pairing_code, token = current_app.service.new_client(friendly_name=name)
+        client = current_app.service.new_client(friendly_name=name)
     except Exception:  # pylint: disable=broad-except
         return "Cannot create new client", 500
 
     return {
-        "client_id": client_id,
-        "pairing_code": pairing_code,
-        "token": token,
+        "client_id": client.id,
+        "pairing_code": client.pairing_code,
+        "token": client.token,
     }
 
 
@@ -41,13 +50,11 @@ def new_client():
 def pair_with_ereader(client_id, pairing_code_ereader):
     "Pair two clients"
 
-    channel_id, token = current_app.service.pair_with_ereader(
-        client_id, token_arg(), pairing_code_ereader
-    )
+    channel = app_service().new_channel_using_code(client_id, token_arg(), pairing_code_ereader)
     return {
-        "channel_id": channel_id,
+        "channel_id": channel.id,
         "client_id": client_id,
-        "token": token,
+        "token": channel.token,
     }
 
 
@@ -55,12 +62,12 @@ def pair_with_ereader(client_id, pairing_code_ereader):
 def channels_for_ereader(client_id):
     "Return the results of pairings for a client"
 
-    channels = current_app.service.channels_for_client(client_id, token_arg())
+    channels = app_service().channels_for_client(client_id, token_arg())
 
     return [
         {
-            "channel_id": c["id"],
-            "token": c["token"],
+            "channel_id": c.id,
+            "token": c.token,
         }
         for c in channels
     ]
@@ -69,8 +76,6 @@ def channels_for_ereader(client_id):
 @bp.route("/api/upload/<channel_id>/<client_id>", methods=["POST"])
 def upload_file(channel_id, client_id):
     "Upload a file to the channel"
-
-    current_app.logger.info("Uploading file")
 
     if "file" not in request.files:
         return {"error": "No file part"}, 400
@@ -99,7 +104,10 @@ def upload_file(channel_id, client_id):
 def delete_file(channel_id, client_id, file_id):
     "Delete a file from the channel"
 
-    current_app.service.remove_file(channel_id, client_id, token_arg(), file_id)
+    try:
+        app_service().remove_file(channel_id, client_id, token_arg(), file_id)
+    except Exception:  # pylint: disable=broad-except
+        return {"error": "Cannot delete file"}, 400
 
     return {"message": "File deleted successfully"}, 200
 
@@ -108,14 +116,16 @@ def delete_file(channel_id, client_id, file_id):
 def get_files(channel_id, client_id):
     "Get all files for a channel"
 
-    files = current_app.service.get_files_for_channel(channel_id, client_id, token_arg())
+    files = app_service().get_files_for_channel(channel_id, client_id, token_arg())
 
     return [
         {
-            "name": f["name"],
-            "size": f["size"],
-            "id": f["id"],
-            "expires_at_unixutc": f["expires_at_unixutc"],
+            "name": f.name,
+            "size": f.size,
+            "title": f.title,
+            "author": f.author,
+            "id": f.id,
+            "expires_at_unixutc": f.expires_at_unixutc,
         }
         for f in files
     ]
@@ -129,7 +139,7 @@ def download_file(file_name):  # pylint: disable=unused-argument
     Internally, the file is fetched with a unique ID passed as a query parameter.
     """
 
-    file = current_app.service.get_file(
+    file = app_service().get_file(
         request.args.get("channel_id"),
         request.args.get("client_id"),
         token_arg(),
