@@ -1,11 +1,11 @@
-name: code-qa
+name: Type checking
 
 on:
   push:
-    paths: ['**.py', 'pyproject.toml', '.github/workflows/ruff.yml']
+    paths: ['**.py', 'pyproject.toml']
 
 jobs:
-  code-qa:
+  mypy:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,14 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install ruff
           pip install mypy
-
-      - name: Lint with ruff
-        run: ruff check .
-
-      - name: Format with ruff
-        run: ruff format . --check
 
       - name: Type checking with mypy
         run: mypy src --ignore-missing-imports

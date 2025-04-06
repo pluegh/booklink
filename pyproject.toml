@@ -31,3 +31,8 @@ dev = [
 
 [tool.ruff]
 line-length = 100
+
+[tool.isort]
+force_grid_wrap = 2  # Use grid style wrapping for imports when there are 2 or more
+multi_line_output = 3  # Place each import on its own line
+include_trailing_comma = true
