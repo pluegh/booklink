@@ -35,12 +35,12 @@ class FileRegister:
         max_files_in_channel: int = 100,
         file_expiration_seconds: int = 300,
         max_total_file_size_bytes: int = 100 * 1024 * 1024,  # 100 MB
-        max_random_draws_file_id: int = 10,
+        max_random_draws: int = 10,
     ):
         self.max_files_in_channel = max_files_in_channel
         self.file_expiration_seconds = file_expiration_seconds
         self.max_total_size_bytes = max_total_file_size_bytes
-        self.max_random_draws_file_id = max_random_draws_file_id
+        self.max_random_draws_file_id = max_random_draws
 
         self._files_per_channel: dict[str, FilesPerChannel] = {}  # channel_id key
         self.__files_per_channel_lock = threading.Lock()

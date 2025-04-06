@@ -4,7 +4,9 @@ Test routes of the api backend
 
 import io
 from dataclasses import dataclass
+from typing import Generator
 
+import flask
 import pytest
 
 import booklink.flask_app
@@ -21,12 +23,12 @@ class TestClientHandling:
     "Test the handling of clients in pairing process"
 
     @pytest.fixture
-    def app(self):
+    def app(self) -> Generator[flask.Flask, None, None]:
         "Return the flask app"
         app = booklink.flask_app.create_app(TestConfig=TestConfig)
         yield app
 
-    def test_new_client(self, app):
+    def test_new_client(self, app: flask.Flask):
         "Test new client generation"
         with app.test_client() as client:
             res = client.get("/api/new_client")
@@ -38,14 +40,14 @@ class TestClientHandling:
             assert isinstance(data["pairing_code"], str)
             assert isinstance(data["token"], str)
 
-    def test_multiple_new_clients(self, app):
+    def test_multiple_new_clients(self, app: flask.Flask):
         "Test multiple new client generation"
         with app.test_client() as client:
             for _ in range(10):
                 res = client.get("/api/new_client")
                 assert res.status_code == 200
 
-    def test_too_many_new_clients(self, app):
+    def test_too_many_new_clients(self, app: flask.Flask):
         "Test handling of too many new clients"
         with app.test_client() as client:
             for _ in range(10):
@@ -74,7 +76,7 @@ class TestChannelHandling:
         channel_token_b: str
 
     @pytest.fixture
-    def app_with_paired_users(self):
+    def app_with_paired_users(self) -> Generator[AppWithPairedUsersFixture, None, None]:
         "Return app with paired users and associated data"
         app = booklink.flask_app.create_app(TestConfig=TestConfig)
 
@@ -106,7 +108,7 @@ class TestChannelHandling:
             channel_res_b["token"],
         )
 
-    def test_pair_response(self, app_with_paired_users):
+    def test_pair_response(self, app_with_paired_users: AppWithPairedUsersFixture):
         "Test pairing of two clients"
         fixture = app_with_paired_users  # pylint: disable=unused-variable
 
@@ -114,7 +116,7 @@ class TestChannelHandling:
         assert isinstance(fixture.channel_token_a, str)
         assert isinstance(fixture.channel_token_b, str)
 
-    def test_channels_for_ereader(self, app_with_paired_users):
+    def test_channels_for_ereader(self, app_with_paired_users: AppWithPairedUsersFixture):
         "Test retrieval of channels for e-reader"
         fixture = app_with_paired_users  # pylint: disable=unused-variable
 
@@ -128,7 +130,7 @@ class TestChannelHandling:
 
         assert len(channels_for_ereader_data) == 1
 
-    def test_upload_file(self, app_with_paired_users):
+    def test_upload_file(self, app_with_paired_users: AppWithPairedUsersFixture):
         "Test uploading a file"
         fixture = app_with_paired_users  # pylint: disable=unused-variable
 
@@ -140,7 +142,7 @@ class TestChannelHandling:
             )
             assert upload_res.get_json() == {"message": "File uploaded successfully"}
 
-    def test_get_files(self, app_with_paired_users):
+    def test_get_files(self, app_with_paired_users: AppWithPairedUsersFixture):
         "Test getting files for channel"
         fixture = app_with_paired_users
 
