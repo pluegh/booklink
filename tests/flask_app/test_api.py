@@ -130,17 +130,31 @@ class TestChannelHandling:
 
         assert len(channels_for_ereader_data) == 1
 
-    def test_upload_file(self, app_with_paired_users: AppWithPairedUsersFixture):
-        "Test uploading a file"
+    def test_upload_and_download_file(self, app_with_paired_users: AppWithPairedUsersFixture):
+        "Upload and download file"
         fixture = app_with_paired_users  # pylint: disable=unused-variable
 
+        # Upload file
         with fixture.app.test_client() as client:
             upload_res = client.post(
                 f"/api/upload/{fixture.channel_id}/{fixture.client_id_a}"
                 f"?token={fixture.channel_token_a}",
                 data={"file": (io.BytesIO(b"test_file_content"), "test.epub")},
             )
-            assert upload_res.get_json() == {"message": "File uploaded successfully"}
+            file_id = upload_res.get_json()["id"]
+            assert upload_res.get_json()["message"] == "File uploaded successfully"
+
+        # Download file
+        with fixture.app.test_client() as client:
+            download_res = client.get(
+                f"/test.epub?"
+                f"channel_id={fixture.channel_id}&"
+                f"client_id={fixture.client_id_b}&"
+                f"token={fixture.channel_token_b}&"
+                f"file_id={file_id}"
+            )
+            assert download_res.status_code == 200
+            assert download_res.data == b"test_file_content"
 
     def test_get_files(self, app_with_paired_users: AppWithPairedUsersFixture):
         "Test getting files for channel"
@@ -153,7 +167,7 @@ class TestChannelHandling:
                 f"/{fixture.client_id_a}?token={fixture.channel_token_a}",
                 data={"file": (io.BytesIO(b"test_file_content"), "test.epub")},
             )
-            assert upload_res.get_json() == {"message": "File uploaded successfully"}
+            assert upload_res.get_json()["message"] == "File uploaded successfully"
 
         # Get list of files
         with fixture.app.test_client() as client:
