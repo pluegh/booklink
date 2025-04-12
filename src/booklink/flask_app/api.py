@@ -6,11 +6,15 @@ This module translates the service layer to the flask routes.
 
 from io import BytesIO
 
-from flask import Blueprint, current_app, request, send_file
+from flask import (
+    Blueprint,
+    current_app,
+    request,
+    send_file,
+)
 from werkzeug.utils import secure_filename
 
 from booklink.application_service import ApplicationService
-
 
 bp = Blueprint("api", __name__, url_prefix="")
 

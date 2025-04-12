@@ -1,6 +1,5 @@
 import pytest
 
-
 from booklink.pair_devices import (
     Client,
     ClientNotFoundError,
