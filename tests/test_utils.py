@@ -1,12 +1,11 @@
 import datetime
-
 import urllib.parse
 
 from booklink.utils import (
-    now_unixutc,
-    human_friendly_pairing_code,
-    url_friendly_code,
     file_size_string,
+    human_friendly_pairing_code,
+    now_unixutc,
+    url_friendly_code,
 )
 
 

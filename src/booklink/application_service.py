@@ -9,15 +9,18 @@ import dataclasses
 import io
 from typing import (
     Any,
-    Optional,
     List,
+    Optional,
     TypeAlias,
 )
 
+from booklink.ebookfile import (
+    BookMetadata,
+    InMemoryEbookFile,
+)
 from booklink.pair_devices import PairingRegister
-from booklink.ebookfile import InMemoryEbookFile, BookMetadata
-from booklink.storage import FileRegister
 from booklink.security import Authenticator
+from booklink.storage import FileRegister
 
 
 @dataclasses.dataclass

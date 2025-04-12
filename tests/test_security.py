@@ -2,7 +2,10 @@
 
 import pytest
 
-from booklink.security import Authenticator, AuthenticationError
+from booklink.security import (
+    AuthenticationError,
+    Authenticator,
+)
 
 
 class TestAuthenticator:

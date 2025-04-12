@@ -1,12 +1,13 @@
 import io
-import pytest
 from typing import Generator
+
+import pytest
 
 from booklink.application_service import (
     ApplicationService,
     ApplicationServiceConfig,
-    ClientResponse,
     ChannelResponse,
+    ClientResponse,
 )
 
 

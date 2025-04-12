@@ -1,11 +1,13 @@
 "Defines resources for sending files"
 
 import abc
-from dataclasses import dataclass
 import threading
+from dataclasses import dataclass
 
-from booklink.utils import now_unixutc
-from booklink.utils import url_friendly_code
+from booklink.utils import (
+    now_unixutc,
+    url_friendly_code,
+)
 
 
 class FileRegisterError(Exception):

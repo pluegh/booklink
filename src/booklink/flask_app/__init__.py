@@ -6,8 +6,14 @@ import os
 
 from flask import Flask
 
-from booklink.application_service import ApplicationService, ApplicationServiceConfig
-from booklink.flask_app.utils import get_git_revision_short_hash, get_git_revisition_branch
+from booklink.application_service import (
+    ApplicationService,
+    ApplicationServiceConfig,
+)
+from booklink.flask_app.utils import (
+    get_git_revision_short_hash,
+    get_git_revisition_branch,
+)
 
 
 def create_app(TestConfig=None) -> Flask:  # pylint: disable=C0103

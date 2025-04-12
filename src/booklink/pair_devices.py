@@ -6,8 +6,8 @@ from typing import Optional
 from booklink.channel import Channel
 from booklink.client import Client
 from booklink.utils import (
-    now_unixutc,
     human_friendly_pairing_code,
+    now_unixutc,
     url_friendly_code,
 )
 

@@ -1,9 +1,9 @@
 "Module for ebook files"
 
-import io
-from typing import Optional
 import dataclasses
+import io
 import zipfile
+from typing import Optional
 
 from lxml import etree
 

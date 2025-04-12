@@ -2,7 +2,6 @@
 
 import dataclasses
 
-
 from booklink.utils import now_unixutc
 
 

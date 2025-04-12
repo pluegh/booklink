@@ -5,8 +5,8 @@ from functools import wraps
 from flask import (
     Blueprint,
     current_app,
-    render_template,
     redirect,
+    render_template,
     request,
     url_for,
 )

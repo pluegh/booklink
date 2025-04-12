@@ -2,7 +2,6 @@
 
 import pytest
 
-
 from booklink.channel import Channel
 
 

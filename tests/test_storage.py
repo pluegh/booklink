@@ -3,9 +3,9 @@ from dataclasses import dataclass
 import pytest
 
 from booklink.storage import (
-    RegisteredFile,
     FileRegister,
     FileRegisterError,
+    RegisteredFile,
 )
 from booklink.utils import now_unixutc
 
