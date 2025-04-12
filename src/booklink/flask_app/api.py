@@ -20,7 +20,10 @@ bp = Blueprint("api", __name__, url_prefix="")
 
 
 def app_service() -> ApplicationService:
-    "Get the service from the current app"
+    """Retrieve the application service instance from the current Flask app.
+
+    This enables proper usage of type hints for the service.
+    """
     return current_app.service  # type: ignore[attr-defined]
 
 
@@ -39,7 +42,7 @@ def new_client():
     name = request.args.get("friendly_name") or ""
 
     try:
-        client = current_app.service.new_client(friendly_name=name)
+        client = app_service().new_client(friendly_name=name)
     except Exception:  # pylint: disable=broad-except
         return "Cannot create new client", 500
 
@@ -93,13 +96,13 @@ def upload_file(channel_id, client_id):
         data_buffer = BytesIO(raw_file.read())
 
         try:
-            current_app.service.store_file_for_channel(
+            file_id = app_service().store_file_for_channel(
                 channel_id, client_id, token_arg(), filename, data_buffer
             )
         except Exception:  # pylint: disable=broad-except
             return {"error": "Cannot store file"}, 400
 
-        return {"message": "File uploaded successfully"}, 200
+        return {"message": "File uploaded successfully", "id": file_id}, 200
 
     return {"error": "File type not allowed"}, 400
 
@@ -136,7 +139,7 @@ def get_files(channel_id, client_id):
 
 
 @bp.route("/<file_name>")
-def download_file(file_name):  # pylint: disable=unused-argument
+def download_file(file_name):
     """Download a file.
 
     The kobo ereader needs the url to be at the root.
@@ -144,9 +147,9 @@ def download_file(file_name):  # pylint: disable=unused-argument
     """
 
     file = app_service().get_file(
-        request.args.get("channel_id"),
-        request.args.get("client_id"),
-        token_arg(),
+        channel_id=request.args.get("channel_id"),
+        client_id=request.args.get("client_id"),
+        token=token_arg(),
         file_id=request.args.get("file_id"),
     )
 
@@ -154,9 +157,10 @@ def download_file(file_name):  # pylint: disable=unused-argument
     sending_buffer = BytesIO()
     sending_buffer.write(file.data.read())
     file.data.seek(0)  # Reset file buffer after read
+    sending_buffer.seek(0)  # Reset sending buffer after write
 
     return send_file(
         sending_buffer,
         as_attachment=True,
-        download_name=file.name,
+        download_name=file_name,
     )
