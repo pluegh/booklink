@@ -44,8 +44,5 @@ class Authenticator:
         except jwt.DecodeError as exc:
             raise AuthenticationError("Invalid token") from exc
 
-        if not self.id_factors.issubset(payload.keys()):
-            raise AuthenticationError("Token does not match ID factors")
-
         if not id_claim == {key: payload[key] for key in self.id_factors}:
             raise AuthenticationError("Token does not match ID factors")
