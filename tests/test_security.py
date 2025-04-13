@@ -78,3 +78,24 @@ class TestAuthenticator:
         """
         token = multi_id_authenticator.token(0, id="Bob", role="admin")
         multi_id_authenticator.validate(token, id="Bob", role="admin")
+
+    def test_token_creation_fails_when_id_factors_missing(self, multi_id_authenticator):
+        """Given client_id and creation time
+        When trying to create a token with missing ID factors
+        Then an exception is raised
+        """
+        with pytest.raises(ValueError):
+            multi_id_authenticator.token(0, id="Bob")
+        with pytest.raises(ValueError):
+            multi_id_authenticator.token(0, role="admin")
+
+    def test_validation_fails_when_id_factors_missing(self, multi_id_authenticator):
+        """Given client_id and creation time
+        When trying to validate a token with missing ID factors
+        Then an exception is raised
+        """
+        token = multi_id_authenticator.token(0, id="Bob", role="admin")
+        with pytest.raises(AuthenticationError):
+            multi_id_authenticator.validate(token, id="Bob")  # Missing role
+        with pytest.raises(AuthenticationError):
+            multi_id_authenticator.validate(token, role="admin")  # Missing id
