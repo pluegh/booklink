@@ -146,12 +146,15 @@ def download_file(file_name):
     Internally, the file is fetched with a unique ID passed as a query parameter.
     """
 
-    file = app_service().get_file(
-        channel_id=request.args.get("channel_id"),
-        client_id=request.args.get("client_id"),
-        token=token_arg(),
-        file_id=request.args.get("file_id"),
-    )
+    try:
+        file = app_service().get_file(
+            channel_id=request.args.get("channel_id"),
+            client_id=request.args.get("client_id"),
+            token=token_arg(),
+            file_id=request.args.get("file_id"),
+        )
+    except Exception:  # pylint: disable=broad-except
+        return "File not found", 404
 
     # Copy file since flask will close the file after sending
     sending_buffer = BytesIO()

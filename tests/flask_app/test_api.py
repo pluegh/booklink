@@ -4,7 +4,10 @@ Test routes of the api backend
 
 import io
 from dataclasses import dataclass
-from typing import Generator
+from typing import (
+    Generator,
+    Literal,
+)
 
 import flask
 import pytest
@@ -130,8 +133,8 @@ class TestChannelHandling:
 
         assert len(channels_for_ereader_data) == 1
 
-    def test_upload_and_download_file(self, app_with_paired_users: AppWithPairedUsersFixture):
-        "Upload and download file"
+    def test_file_life_cycle(self, app_with_paired_users: AppWithPairedUsersFixture):
+        "Test the whole file life cycle: upload, download, and delete"
         fixture = app_with_paired_users  # pylint: disable=unused-variable
 
         # Upload file
@@ -144,17 +147,35 @@ class TestChannelHandling:
             file_id = upload_res.get_json()["id"]
             assert upload_res.get_json()["message"] == "File uploaded successfully"
 
-        # Download file
+        def verify_download(must: Literal["succeed", "fail"]):
+            with fixture.app.test_client() as client:
+                download_res = client.get(
+                    f"/test.epub?"
+                    f"channel_id={fixture.channel_id}&"
+                    f"client_id={fixture.client_id_b}&"
+                    f"token={fixture.channel_token_b}&"
+                    f"file_id={file_id}"
+                )
+                if must == "succeed":
+                    assert download_res.status_code == 200
+                    assert download_res.data == b"test_file_content"
+                elif must == "fail":
+                    assert download_res.status_code == 404
+
+        verify_download(must="succeed")  # First time
+        verify_download(must="succeed")  # Also the following times until deletion
+        verify_download(must="succeed")
+
+        # Delete file
         with fixture.app.test_client() as client:
-            download_res = client.get(
-                f"/test.epub?"
-                f"channel_id={fixture.channel_id}&"
-                f"client_id={fixture.client_id_b}&"
-                f"token={fixture.channel_token_b}&"
-                f"file_id={file_id}"
+            delete_res = client.delete(
+                f"/api/delete/{fixture.channel_id}/{fixture.client_id_b}/{file_id}"
+                f"?token={fixture.channel_token_b}"
             )
-            assert download_res.status_code == 200
-            assert download_res.data == b"test_file_content"
+            assert delete_res.status_code == 200
+            assert delete_res.get_json()["message"] == "File deleted successfully"
+
+        verify_download(must="fail")
 
     def test_get_files(self, app_with_paired_users: AppWithPairedUsersFixture):
         "Test getting files for channel"
