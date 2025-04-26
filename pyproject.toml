@@ -32,6 +32,9 @@ dev = [
 [tool.ruff]
 line-length = 100
 
+[tool.ruff.lint]
+select = ["D300"]  # Enforce triple quotes for single-line docstrings
+
 [tool.isort]
 force_grid_wrap = 2  # Use grid style wrapping for imports when there are 2 or more
 multi_line_output = 3  # Place each import on its own line
