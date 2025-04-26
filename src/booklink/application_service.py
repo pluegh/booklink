@@ -25,7 +25,7 @@ from booklink.storage import FileRegister
 
 @dataclasses.dataclass
 class ClientResponse:
-    "Client data"
+    """Client data"""
 
     id: str
     pairing_code: str
@@ -34,7 +34,7 @@ class ClientResponse:
 
 @dataclasses.dataclass
 class ChannelResponse:
-    "Channel data"
+    """Channel data"""
 
     id: str
     token: str
@@ -42,7 +42,7 @@ class ChannelResponse:
 
 @dataclasses.dataclass
 class EbookFileResponse:
-    "File data"
+    """File data"""
 
     id: str
     name: str
@@ -59,7 +59,7 @@ FileID: TypeAlias = str  # pylint: disable=invalid-name
 
 @dataclasses.dataclass(frozen=True)
 class ApplicationServiceConfig:
-    "Configuration for the application service layer"
+    """Configuration for the application service layer"""
 
     client_jwt_secret: str
     channel_jwt_secret: str
@@ -76,7 +76,7 @@ class ApplicationServiceConfig:
 
 
 class ApplicationService:
-    "The application service layer for the BookLink application."
+    """The application service layer for the BookLink application."""
 
     def __init__(
         self,

@@ -12,11 +12,11 @@ from booklink.application_service import (
 
 
 class TestApplicationService:
-    "Test the ApplicationService class"
+    """Test the ApplicationService class"""
 
     @pytest.fixture
     def app_config(self) -> Generator[ApplicationServiceConfig, None, None]:
-        "Return an ApplicationServiceConfig for testing"
+        """Return an ApplicationServiceConfig for testing"""
         yield ApplicationServiceConfig(
             client_jwt_secret="test_secret",
             channel_jwt_secret="test_secret",
@@ -27,11 +27,11 @@ class TestApplicationService:
 
     @pytest.fixture
     def app(self, app_config: ApplicationServiceConfig) -> ApplicationService:
-        "Return the ApplicationService"
+        """Return the ApplicationService"""
         return ApplicationService(app_config)
 
     def test_initialize(self, app: ApplicationService):
-        "Test initialization of the ApplicationService"
+        """Test initialization of the ApplicationService"""
         assert app is not None
 
     def test_request_new_client_with_name(self, app: ApplicationService):

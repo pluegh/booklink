@@ -14,21 +14,21 @@ DUMMY_FILE_SIZE_BYTES = 10
 
 @dataclass
 class DummyFile(RegisteredFile):
-    "Dummy file class for testing"
+    """Dummy file class for testing"""
 
     file_id: str
 
     def size_bytes(self) -> int:
-        "Return the size of the file in bytes"
+        """Return the size of the file in bytes"""
         return DUMMY_FILE_SIZE_BYTES
 
 
 class TestFileRegister:
-    "Test the FileRegister class"
+    """Test the FileRegister class"""
 
     @pytest.fixture
     def register(self):
-        "Return a FileRegister instance"
+        """Return a FileRegister instance"""
         yield FileRegister(
             max_files_in_channel=5,
             file_expiration_seconds=100,
@@ -37,7 +37,7 @@ class TestFileRegister:
         )
 
     def test_add_file(self, register):
-        "Test adding a file"
+        """Test adding a file"""
 
         files = [DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc()) for i in range(5)]
         for file in files:
@@ -48,7 +48,7 @@ class TestFileRegister:
         assert len(res) == len(files)
 
     def test_number_of_files_limitation(self, register):
-        "Test that the number of files is limited"
+        """Test that the number of files is limited"""
         n_files = 5
         files = [
             DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc()) for i in range(n_files)
@@ -61,7 +61,7 @@ class TestFileRegister:
             register.add_file("channel", DummyFile(file_id="id", created_at_unixutc=now_unixutc()))
 
     def test_remove_file(self, register):
-        "When adding a file and removing it, the channel should be empty"
+        """When adding a file and removing it, the channel should be empty"""
         file = DummyFile(file_id="id", created_at_unixutc=now_unixutc())
         file_id = register.add_file("channel", file)
         assert len(register.get_files_for_channel("channel")) == 1
@@ -70,7 +70,7 @@ class TestFileRegister:
         assert len(register.get_files_for_channel("channel")) == 0
 
     def test_prune_expired_files(self, register):
-        "Test pruning expired files"
+        """Test pruning expired files"""
         files = [DummyFile(file_id=f"id={i}", created_at_unixutc=0) for i in range(5)]
         for file in files:
             register.add_file("channel", file)
@@ -88,7 +88,7 @@ class TestFileRegister:
         assert "channel" not in register._files_per_channel
 
     def test_get_files_expired(self, register):
-        "Expired files should not be returned"
+        """Expired files should not be returned"""
         register.file_expiration_seconds = 100
         files_expired = [
             DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc() - 100) for i in range(5)
@@ -103,7 +103,7 @@ class TestFileRegister:
         assert res == files_valid
 
     def test_total_size_bytes(self, register):
-        "Test total size of files"
+        """Test total size of files"""
         n_files = 5
         files = [
             DummyFile(file_id=f"id={i}", created_at_unixutc=now_unixutc()) for i in range(n_files)

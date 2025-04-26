@@ -10,7 +10,7 @@ from booklink.utils import (
 
 
 def test_now_unixutc():
-    "Test now_unixutc function"
+    """Test now_unixutc function"""
     timestamp = now_unixutc()
 
     assert isinstance(timestamp, float)
@@ -21,7 +21,7 @@ def test_now_unixutc():
 
 
 def test_human_friendly_pairing_code():
-    "Test human_friendly_pairing_code function"
+    """Test human_friendly_pairing_code function"""
     code = human_friendly_pairing_code()
 
     assert isinstance(code, str)
@@ -30,7 +30,7 @@ def test_human_friendly_pairing_code():
 
 
 def test_url_friendly_code():
-    "Test url_friendly_code function"
+    """Test url_friendly_code function"""
     code = url_friendly_code()
 
     assert isinstance(code, str)
@@ -38,7 +38,7 @@ def test_url_friendly_code():
 
 
 def test_file_size_string():
-    "Test file_size_string function"
+    """Test file_size_string function"""
     assert file_size_string(0) == "0.0B"
     assert file_size_string(1000) == "1.0kB"
     assert file_size_string(1e6) == "1.0MB"

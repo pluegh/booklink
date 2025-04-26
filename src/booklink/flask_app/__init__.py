@@ -17,7 +17,7 @@ from booklink.flask_app.utils import (
 
 
 def create_app(TestConfig=None) -> Flask:  # pylint: disable=C0103
-    "Create and configure the app"
+    """Create and configure the app"""
     app = Flask(__name__, instance_relative_config=True)
 
     Config = TestConfig or get_config_from_env()  # pylint: disable=C0103
@@ -38,7 +38,7 @@ def create_app(TestConfig=None) -> Flask:  # pylint: disable=C0103
 
 
 def attach_service(app: Flask):
-    "Attach the application service to the flask app"
+    """Attach the application service to the flask app"""
 
     service_config = ApplicationServiceConfig(
         client_jwt_secret=app.config["SECRET_KEY"],
@@ -53,7 +53,7 @@ def attach_service(app: Flask):
 
 
 class BaseConfig:
-    "Configuration for the flask app"
+    """Configuration for the flask app"""
 
     SECRET_KEY: str | None
     MAX_CLIENTS_IN_PAIRING: int = 100
@@ -67,7 +67,7 @@ class BaseConfig:
 
     @classmethod
     def init_app(cls, app: Flask):
-        "Initialize the app with testing configuration"
+        """Initialize the app with testing configuration"""
         app.logger.info(f"Configuration is `{cls.__name__}`")
         app.logger.info(
             f"Git revision is `{cls.GIT_REVISION_HASH}` on branch `{cls.GIT_REVISION_BRANCH}`"
@@ -77,19 +77,19 @@ class BaseConfig:
 
 
 class DevConfig(BaseConfig):
-    "Configuration for the flask app in development"
+    """Configuration for the flask app in development"""
 
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-key"
 
 
 class ProdConfig(BaseConfig):
-    "Configuration for the flask app"
+    """Configuration for the flask app"""
 
     SECRET_KEY: str | None = os.environ.get("SECRET_KEY")  # No fallback
 
 
 def get_config_from_env() -> type[BaseConfig]:
-    "Get the configuration from the environment"
+    """Get the configuration from the environment"""
     if os.environ.get("FLASK_ENV") == "production":
         return ProdConfig
     return DevConfig

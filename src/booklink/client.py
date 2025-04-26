@@ -1,4 +1,4 @@
-"Client for pairing process"
+"""Client for pairing process"""
 
 import dataclasses
 from typing import Self
@@ -25,7 +25,7 @@ class Client:
         cls,
         friendly_name: str,
     ) -> Self:
-        "Generate a client with the given pairing code"
+        """Generate a client with the given pairing code"""
         created_at_unixutc = now_unixutc()
         unique_client_id = f"{url_friendly_code(n_chars=5)}-{created_at_unixutc}"
 

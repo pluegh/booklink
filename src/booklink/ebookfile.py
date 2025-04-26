@@ -1,4 +1,4 @@
-"Module for ebook files"
+"""Module for ebook files"""
 
 import dataclasses
 import io
@@ -13,7 +13,7 @@ from booklink.utils import now_unixutc
 
 @dataclasses.dataclass(frozen=True)
 class BookMetadata:
-    "Metadata for an ebook file"
+    """Metadata for an ebook file"""
 
     title: str
     author: str
@@ -23,7 +23,7 @@ class BookMetadata:
 
     @classmethod
     def empty(cls):
-        "Create metadata with empty strings"
+        """Create metadata with empty strings"""
         return cls(
             title="",
             author="",
@@ -35,7 +35,7 @@ class BookMetadata:
 
 @dataclasses.dataclass
 class InMemoryEbookFile(RegisteredFile):
-    "Class for ebook files"
+    """Class for ebook files"""
 
     name: str
     data: io.BytesIO
@@ -43,7 +43,7 @@ class InMemoryEbookFile(RegisteredFile):
 
     @classmethod
     def make(cls, name: str, data: io.BytesIO) -> "InMemoryEbookFile":
-        "Create an EbookFile instance from bytes"
+        """Create an EbookFile instance from bytes"""
 
         valid_extensions = (".epub", ".mobi", ".pdf", ".kepub", ".azw", ".txt")
         for extension in valid_extensions:
@@ -63,19 +63,19 @@ class InMemoryEbookFile(RegisteredFile):
         )
 
     def size_bytes(self) -> int:
-        "Return the size of the file in bytes"
+        """Return the size of the file in bytes"""
         return self.data.getbuffer().nbytes
 
 
 class MetaDataFactory:
-    "Factory for creating ebook files"
+    """Factory for creating ebook files"""
 
     def __init__(self, name: str, data: io.BytesIO):
         self.name = name
         self.data = data
 
     def get_metadata(self) -> Optional[BookMetadata]:
-        "Check if the file is an epub file"
+        """Check if the file is an epub file"""
         if self.name.lower().endswith(".epub"):
             try:
                 return self.extract_epub_metadata()
@@ -85,10 +85,10 @@ class MetaDataFactory:
             return None
 
     def extract_epub_metadata(self) -> BookMetadata:
-        "Return the metadata from the file"
+        """Return the metadata from the file"""
 
         def first_path_match(element, path):
-            "Return the first element matching the path"
+            """Return the first element matching the path"""
             return element.xpath(
                 path,
                 namespaces={
