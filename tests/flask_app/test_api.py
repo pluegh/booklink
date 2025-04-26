@@ -16,23 +16,23 @@ import booklink.flask_app
 
 
 class TestConfig(booklink.flask_app.BaseConfig):
-    "FlaskConfig for testing"
+    """FlaskConfig for testing"""
 
     SECRET_KEY = "test_secret"
     MAX_CLIENTS_IN_PAIRING = 10
 
 
 class TestClientHandling:
-    "Test the handling of clients in pairing process"
+    """Test the handling of clients in pairing process"""
 
     @pytest.fixture
     def app(self) -> Generator[flask.Flask, None, None]:
-        "Return the flask app"
+        """Return the flask app"""
         app = booklink.flask_app.create_app(TestConfig=TestConfig)
         yield app
 
     def test_new_client(self, app: flask.Flask):
-        "Test new client generation"
+        """Test new client generation"""
         with app.test_client() as client:
             res = client.get("/api/new_client")
             assert res.status_code == 200
@@ -44,14 +44,14 @@ class TestClientHandling:
             assert isinstance(data["token"], str)
 
     def test_multiple_new_clients(self, app: flask.Flask):
-        "Test multiple new client generation"
+        """Test multiple new client generation"""
         with app.test_client() as client:
             for _ in range(10):
                 res = client.get("/api/new_client")
                 assert res.status_code == 200
 
     def test_too_many_new_clients(self, app: flask.Flask):
-        "Test handling of too many new clients"
+        """Test handling of too many new clients"""
         with app.test_client() as client:
             for _ in range(10):
                 res = client.get("/api/new_client")
@@ -63,11 +63,11 @@ class TestClientHandling:
 
 
 class TestChannelHandling:
-    "Test the handling of channels"
+    """Test the handling of channels"""
 
     @dataclass(frozen=True)
     class AppWithPairedUsersFixture:
-        "Fixture for app with paired users"
+        """Fixture for app with paired users"""
 
         app: booklink.flask_app.Flask
         client_id_a: str
@@ -80,7 +80,7 @@ class TestChannelHandling:
 
     @pytest.fixture
     def app_with_paired_users(self) -> Generator[AppWithPairedUsersFixture, None, None]:
-        "Return app with paired users and associated data"
+        """Return app with paired users and associated data"""
         app = booklink.flask_app.create_app(TestConfig=TestConfig)
 
         with app.test_client() as client:
@@ -112,7 +112,7 @@ class TestChannelHandling:
         )
 
     def test_pair_response(self, app_with_paired_users: AppWithPairedUsersFixture):
-        "Test pairing of two clients"
+        """Test pairing of two clients"""
         fixture = app_with_paired_users  # pylint: disable=unused-variable
 
         assert isinstance(fixture.channel_id, str)
@@ -120,7 +120,7 @@ class TestChannelHandling:
         assert isinstance(fixture.channel_token_b, str)
 
     def test_channels_for_ereader(self, app_with_paired_users: AppWithPairedUsersFixture):
-        "Test retrieval of channels for e-reader"
+        """Test retrieval of channels for e-reader"""
         fixture = app_with_paired_users  # pylint: disable=unused-variable
 
         with fixture.app.test_client() as client:
@@ -134,7 +134,7 @@ class TestChannelHandling:
         assert len(channels_for_ereader_data) == 1
 
     def test_file_life_cycle(self, app_with_paired_users: AppWithPairedUsersFixture):
-        "Test the whole file life cycle: upload, download, and delete"
+        """Test the whole file life cycle: upload, download, and delete"""
         fixture = app_with_paired_users  # pylint: disable=unused-variable
 
         # Upload file
@@ -178,7 +178,7 @@ class TestChannelHandling:
         verify_download(must="fail")
 
     def test_get_files(self, app_with_paired_users: AppWithPairedUsersFixture):
-        "Test getting files for channel"
+        """Test getting files for channel"""
         fixture = app_with_paired_users
 
         # Upload file

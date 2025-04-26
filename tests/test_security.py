@@ -1,4 +1,4 @@
-"Test security authentication"
+"""Test security authentication"""
 
 import pytest
 
@@ -9,11 +9,11 @@ from booklink.security import (
 
 
 class TestAuthenticator:
-    "Test the client authenticator"
+    """Test the client authenticator"""
 
     @pytest.fixture
     def id_authenticator(self) -> Authenticator:
-        "Simple authenticator for testing with one ID factor"
+        """Simple authenticator for testing with one ID factor"""
         return Authenticator(jwt_secret="testing", id_factors={"id"})
 
     def test_encode_decode_sequence(self, id_authenticator):
@@ -55,7 +55,7 @@ class TestAuthenticator:
 
     @pytest.fixture
     def multi_id_authenticator(self) -> Authenticator:
-        "Authenticator for testing with multiple ID factors"
+        """Authenticator for testing with multiple ID factors"""
         return Authenticator(jwt_secret="testing", id_factors={"id", "role"})
 
     def test_encode_decode_sequence_multi_id(self, multi_id_authenticator):

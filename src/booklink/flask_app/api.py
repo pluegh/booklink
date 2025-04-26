@@ -28,7 +28,7 @@ def app_service() -> ApplicationService:
 
 
 def token_arg():
-    "Get token from request argument"
+    """Get token from request argument"""
     token = request.args.get("token")
     if not token:
         return "No token provided", 400
@@ -37,7 +37,7 @@ def token_arg():
 
 @bp.route("/api/new_client")
 def new_client():
-    "Generate a new client for pairing"
+    """Generate a new client for pairing"""
 
     name = request.args.get("friendly_name") or ""
 
@@ -55,7 +55,7 @@ def new_client():
 
 @bp.route("/api/pair/<client_id>/<pairing_code_ereader>")
 def pair_with_ereader(client_id, pairing_code_ereader):
-    "Pair two clients"
+    """Pair two clients"""
 
     channel = app_service().new_channel_using_code(client_id, token_arg(), pairing_code_ereader)
     return {
@@ -67,7 +67,7 @@ def pair_with_ereader(client_id, pairing_code_ereader):
 
 @bp.route("/api/channels_for/<client_id>")
 def channels_for_ereader(client_id):
-    "Return the results of pairings for a client"
+    """Return the results of pairings for a client"""
 
     channels = app_service().channels_for_client(client_id, token_arg())
 
@@ -82,7 +82,7 @@ def channels_for_ereader(client_id):
 
 @bp.route("/api/upload/<channel_id>/<client_id>", methods=["POST"])
 def upload_file(channel_id, client_id):
-    "Upload a file to the channel"
+    """Upload a file to the channel"""
 
     if "file" not in request.files:
         return {"error": "No file part"}, 400
@@ -109,7 +109,7 @@ def upload_file(channel_id, client_id):
 
 @bp.route("/api/delete/<channel_id>/<client_id>/<file_id>", methods=["DELETE"])
 def delete_file(channel_id, client_id, file_id):
-    "Delete a file from the channel"
+    """Delete a file from the channel"""
 
     try:
         app_service().remove_file(channel_id, client_id, token_arg(), file_id)
@@ -121,7 +121,7 @@ def delete_file(channel_id, client_id, file_id):
 
 @bp.route("/api/files/<channel_id>/<client_id>")
 def get_files(channel_id, client_id):
-    "Get all files for a channel"
+    """Get all files for a channel"""
 
     files = app_service().get_files_for_channel(channel_id, client_id, token_arg())
 

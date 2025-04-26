@@ -1,4 +1,4 @@
-"Provides authentification for the service layer."
+"""Provides authentification for the service layer."""
 
 from typing import Set
 
@@ -6,7 +6,7 @@ import jwt
 
 
 class AuthenticationError(Exception):
-    "Error raised when authentication fails"
+    """Error raised when authentication fails"""
 
 
 class Authenticator:
@@ -23,7 +23,7 @@ class Authenticator:
         self.id_factors = id_factors
 
     def decode(self, token):
-        "Decode token and return payload"
+        """Decode token and return payload"""
         return jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
 
     def token(self, timestamp_unixutc, **id_factors):

@@ -1,4 +1,4 @@
-"Serving the frontend routes"
+"""Serving the frontend routes"""
 
 from functools import wraps
 
@@ -15,7 +15,7 @@ bp = Blueprint("frontend", __name__)
 
 
 def redirect_ereader_to_pair(f):
-    "Decorator to redirect to pairing if user is on e-reader"
+    """Decorator to redirect to pairing if user is on e-reader"""
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -34,13 +34,13 @@ def redirect_ereader_to_pair(f):
 @bp.route("/")
 @redirect_ereader_to_pair
 def landing_page():
-    "Render the landing page"
+    """Render the landing page"""
     return render_template("landing_page.html")
 
 
 @bp.route("/pair_ereader")
 def pair_ereader():
-    "Pairing route for e-reader"
+    """Pairing route for e-reader"""
     return render_template(
         "simple_pair.html",
         client_expiration_seconds=current_app.config["CLIENT_EXPIRATION"],
@@ -50,7 +50,7 @@ def pair_ereader():
 
 @bp.route("/pair")
 def pair():
-    "Pairing route"
+    """Pairing route"""
 
     # Only ask to enter code of e-reader device
     return render_template(
@@ -67,7 +67,7 @@ agent_to_friendly_name = {
 
 @bp.route("/receive/<channel_id>/<client_id>")
 def receive(channel_id, client_id):
-    "Receive route"
+    """Receive route"""
     return render_template(
         "simple_receive.html",
         channel_id=channel_id,
@@ -78,7 +78,7 @@ def receive(channel_id, client_id):
 
 @bp.route("/send/<channel_id>/<client_id>")
 def send(channel_id, client_id):
-    "Send route"
+    """Send route"""
     return render_template(
         "send.html",
         channel_id=channel_id,
