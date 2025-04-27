@@ -56,17 +56,78 @@
                 <!-- Center content - Legal links and rights text -->
                 <div class="flex flex-col items-center md:w-1/3 text-center space-y-2">
                     <div class="opacity-75">
-                        All rights reserved by the authors
+                        GNU General Public License v3.0
                     </div>
-                    <div class="flex space-x-3">
-                        <a href="{{ terms_url|default('') }}" class="link link-hover">No Terms</a>
-                        <a href="{{ privacy_url|default('') }}" class="link link-hover">Full Privacy</a>
-                    </div>
+                    <button class="" onclick="terms_and_conditions_modal.showModal()">Show Terms and Conditions</button>
                 </div>
+
+                <!-- Terms and Conditions Dialog -->
+                <dialog id="terms_and_conditions_modal" class="modal modal-bottom sm:modal-middle">
+                    <div class="modal-box">
+                        <div class="modal-header">
+                            <h2 class="text-lg font-bold">Terms and Conditions</h2>
+                        </div>
+                        <form method="dialog">
+                            <button class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
+                        </form>
+                        <p class="mb-4 text-gray-700">
+                            Here's what you should know before using this website.
+                        </p>
+                        <div class="space-y-6">
+                            {% set sections = [
+                                {
+                                    'title': 'What BookLink Does',
+                                    'pars': ['BookLink helps you transfer files between devices, mainly for e-readers like Kobo. It uses your browser to move files without storing them permanently.']
+                                },
+                                {
+                                    'title': 'The Basics',
+                                    'pars': ['By using BookLink, you\'re agreeing to these terms. It\'s pretty simple: use the app responsibly and respect others\' content.']
+                                },
+                                {
+                                    'title': 'Keep It Legal',
+                                    'pars': ['Please don\'t use BookLink to transfer illegal content. We\'re not checking what you transfer, but you\'re responsible for making sure it\'s legal.']
+                                },
+                                {
+                                    'title': 'Your Files, Your Responsibility',
+                                    'pars': ['You own your files. Make sure you have the right to transfer any copyrighted material. We don\'t check this - it\'s up to you.']
+                                },
+                                {
+                                    'title': 'Privacy & Security',
+                                    'pars': [
+                                        'We do our best to keep your transfers secure, but we can\'t guarantee perfect security. Files stay in memory temporarily during transfer and aren\'t saved to disk.',
+                                        'We do not collect your personal information.'
+                                    ]
+                                },
+                                {
+                                    'title': 'No Guarantees',
+                                    'pars': ['BookLink is provided as-is. We\'re not responsible for lost or damaged files, and we can\'t guarantee the service will always work perfectly.']
+                                },
+                                {
+                                    'title': 'Changes to These Terms',
+                                    'pars': ['We might update these terms occasionally. Continuing to use BookLink means you accept any changes.']
+                                }
+                            ] %}
+
+                            {% for section in sections %}
+                            <div>
+                                <h2 class="font-semibold text-gray-700 border-b border-gray-200 pb-2">{{ section.title }}</h2>
+                                {% for par in section.pars %}
+                                <p class="mt-2 text-gray-600">
+                                    {{ par }}
+                                </p>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button>close</button>
+                    </form>
+                </dialog>
 
                 <!-- GitHub and version -->
                 <div class="flex items-center space-x-2 opacity-75 md:w-1/3 justify-end">
-                    <a href="{{ github_url|default('https://github.com/pluegh') }}" class="link link-hover flex items-center">
+                    <a href="{{ github_url|default('https://github.com/pluegh/booklink') }}" class="link link-hover flex items-center">
                         <svg class="h-3.5 w-3.5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                         </svg>
