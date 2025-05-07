@@ -14,10 +14,12 @@ Visit [booklink.fnt.im](https://booklink.fnt.im) to get started.
 
  - **No cables**:
    Send e-books to your device without cables or special software
-- **Compatibility**:
+ - **Compatibility**:
    Works with any browser-enabled e-reader and sending device
  - **One-time setup**:
    You need to pair your devices only once.
+ - **Security**:
+   Cryptographic tokens protect the access to your e-books.
  - **Privacy**:
    Built with privacy by design. No user data is collected or needed.
 
