@@ -47,6 +47,7 @@ def attach_service(app: Flask):
         max_files_in_channel=app.config["MAX_FILES_IN_CHANNEL"],
         client_expiration=app.config["CLIENT_EXPIRATION"],
         file_expiration=app.config["FILE_EXPIRATION"],
+        online_status_timeout=app.config["POLL_CHANNEL_STATUS_EVERY"] + 1,  # Avoid timeout
     )
 
     setattr(app, "service", ApplicationService(service_config))
@@ -61,7 +62,7 @@ class BaseConfig:
     CLIENT_EXPIRATION: float = 60 * 60
     FILE_EXPIRATION: float = 60 * 60
     POLL_PAIRING_STATUS_EVERY: float = 3
-    POLL_FILE_STATUS_EVERY: float = 3
+    POLL_CHANNEL_STATUS_EVERY: float = 3
     GIT_REVISION_HASH: str = get_git_revision_short_hash()
     GIT_REVISION_BRANCH: str = get_git_revisition_branch()
 

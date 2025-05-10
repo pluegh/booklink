@@ -177,7 +177,7 @@ class TestChannelHandling:
 
         verify_download(must="fail")
 
-    def test_get_files(self, app_with_paired_users: AppWithPairedUsersFixture):
+    def test_poll_channel_status(self, app_with_paired_users: AppWithPairedUsersFixture):
         """Test getting files for channel"""
         fixture = app_with_paired_users
 
@@ -192,12 +192,17 @@ class TestChannelHandling:
 
         # Get list of files
         with fixture.app.test_client() as client:
-            get_files_res = client.get(
-                f"/api/files/{fixture.channel_id}/"
+            status_res = client.get(
+                f"/api/status/{fixture.channel_id}/"
                 f"{fixture.client_id_b}?token={fixture.channel_token_b}"
             )
-            assert get_files_res.status_code == 200
-            data = get_files_res.get_json()
+            assert status_res.status_code == 200
+
+            assert set(status_res.get_json()["online_clients"]) == {
+                fixture.client_id_b,
+            }
+
+            data = status_res.get_json()["files"]
             assert len(data) == 1
             assert data[0]["name"] == "test.epub"
             assert data[0]["size"] == 17

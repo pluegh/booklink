@@ -11,6 +11,7 @@ from typing import (
     Any,
     List,
     Optional,
+    Set,
     TypeAlias,
 )
 
@@ -20,6 +21,7 @@ from booklink.ebookfile import (
 )
 from booklink.pair_devices import PairingRegister
 from booklink.security import Authenticator
+from booklink.show_online import ClientsOnline
 from booklink.storage import FileRegister
 
 
@@ -65,7 +67,7 @@ class ApplicationServiceConfig:
     channel_jwt_secret: str
 
     max_clients_in_pairing: int = 100
-    client_expiration: float = 60 * 60 * 24
+    client_expiration: float = 60 * 60 * 24  # Rename this later!
     max_draws_client_id: int = 10
 
     max_files_in_channel: int = 20
@@ -73,6 +75,8 @@ class ApplicationServiceConfig:
     total_file_capacity_bytes: int = 1024 * 1024 * 100
     file_expiration: float = 60 * 2
     max_draws_file_id: int = 10
+
+    online_status_timeout: float = 5
 
 
 class ApplicationService:
@@ -99,6 +103,7 @@ class ApplicationService:
         self.channel_auth = Authenticator(
             jwt_secret=config.channel_jwt_secret, id_factors={"channel_id", "client_id"}
         )
+        self.online_clients = ClientsOnline(timeout=config.online_status_timeout)
 
     def verify_channel_claim(self, channel_id: str, client_id: str, token: str):
         """Check if the client has access to the channel."""
@@ -109,10 +114,7 @@ class ApplicationService:
         self.client_auth.validate(token=token, id=client_id)
 
     def new_client(self, friendly_name: Optional[str] = None) -> ClientResponse:
-        """Generate a new client for pairing.
-
-        Returns ID, pairing code, and authentification token.
-        """
+        """Generate a new client for pairing."""
         pairing_code, client = self.pairing_register.new_client(friendly_name)
         token = self.client_auth.token(client.created_at_unixutc, id=client.id)
 
@@ -128,10 +130,7 @@ class ApplicationService:
         token: str,
         pairing_code_ereader: str,
     ) -> ChannelResponse:
-        """Create a channel for the client and the e-reader.
-
-        Returns ID, token for client
-        """
+        """Create a channel for the client and the e-reader."""
         self.verify_client_claim(client_id, token)
 
         channel = self.pairing_register.new_channel(client_id, pairing_code_ereader.lower())
@@ -192,6 +191,18 @@ class ApplicationService:
             self.get_file(channel_id, client_id, token, file_id)
             for file_id in self.file_register.get_file_ids_for_channel(channel_id)
         ]
+
+    def update_and_get_online_clients(
+        self,
+        channel_id: str,
+        client_id: str,
+        token: str,
+    ) -> Set[str]:
+        """Check in as online and get a list of users online for a channel"""
+        self.verify_channel_claim(channel_id, client_id, token)
+
+        self.online_clients.refresh_last_seen(client_id, channel_id)
+        return self.online_clients.all_for_channel(channel_id)
 
     def get_file(
         self,

@@ -73,6 +73,7 @@ def receive(channel_id, client_id):
         channel_id=channel_id,
         client_id=client_id,
         token=request.args.get("token"),
+        poll_interval=current_app.config["POLL_CHANNEL_STATUS_EVERY"],
     )
 
 
@@ -86,5 +87,5 @@ def send(channel_id, client_id):
         token=request.args.get("token"),
         sender_name=request.args.get("sender") or "Sender Device",
         ereader_name=request.args.get("ereader") or "E-Reader",
-        file_poll_interval=current_app.config["POLL_FILE_STATUS_EVERY"],
+        file_poll_interval=current_app.config["POLL_CHANNEL_STATUS_EVERY"],
     )

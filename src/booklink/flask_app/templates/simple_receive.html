@@ -154,6 +154,9 @@
                         <p class="subtitle">
                             Files uploaded from your other device appear here
                         </p>
+                        <p class="devices-online subtitle">
+                            <!-- Placeholder for devices online status -->
+                        </p>
                         <div id="files-container">
                             <!-- files list -->
                         </div>
@@ -172,7 +175,8 @@
         window.AppConfig = {
             channelId: {{ channel_id | safe | tojson }},
             clientId: {{ client_id | safe | tojson }},
-            token: {{ token | safe | tojson }}
+            token: {{ token | safe | tojson }},
+            pollInterval: {{ poll_interval | safe | tojson }}
         };
     </script>
 
@@ -184,7 +188,7 @@
                     channelId: window.AppConfig.channelId,
                     clientId: window.AppConfig.clientId,
                     token: window.AppConfig.token,
-                    pollInterval: 3,
+                    pollInterval: window.AppConfig.pollInterval,
                 };
             }
 
@@ -207,8 +211,8 @@
                     '</svg>';
             }
 
-            // Fetch files from API
-            function fetchFiles() {
+            // Fetch status from API
+            function fetchStatus() {
                 var params = getParams();
 
                 if (!params.channelId || !params.clientId || !params.token) {
@@ -216,7 +220,7 @@
                     return;
                 }
 
-                var url = '/api/files/' + params.channelId + '/' + params.clientId + '?token=' + params.token;
+                var url = '/api/status/' + params.channelId + '/' + params.clientId + '?token=' + params.token;
 
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
@@ -224,10 +228,11 @@
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === 4) {
                         if (xhr.status === 200) {
-                            var files = JSON.parse(xhr.responseText);
-                            displayFiles(files, params);
+                            var status = JSON.parse(xhr.responseText);
+                            displayFiles(status["files"], params);
+                            displayDevicesOnline(status["online_clients"]);
 
-                            setTimeout(fetchFiles, params.pollInterval * 1000);
+                            setTimeout(fetchStatus, params.pollInterval * 1000);
                         } else {
                             showError('Failed to fetch files: ' + xhr.status);
                         }
@@ -281,6 +286,14 @@
                 }
             }
 
+            // Display devices online status
+            function displayDevicesOnline(devicesOnline) {
+                var devicesOnlineText = 'Device(s) online: ' + devicesOnline.length;
+
+                var devicesOnlineElement = document.querySelector('.devices-online');
+                document.querySelector('.devices-online').innerText = devicesOnlineText;
+            }
+
             // Show error message
             function showError(message) {
                 document.getElementById('loading-section').innerHTML =
@@ -293,7 +306,7 @@
             }
 
             // Initialize
-            fetchFiles();
+            fetchStatus();
         })();
     </script>
 </body>
