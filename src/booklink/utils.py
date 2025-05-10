@@ -6,9 +6,34 @@ import secrets
 import string
 
 
+# Retire this later
 def now_unixutc() -> float:
     """Return the current time in unix time for UTC"""
     return datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+
+
+class Clock:
+    """A clock that returns the current time in unix time for UTC"""
+
+    def now_unixutc(self) -> float:
+        """Return the current time in unix time for UTC"""
+        return datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+
+
+class MockClock:
+    """A mock clock that returns a fixed time"""
+
+    def __init__(self):
+        """Initialize the mock clock with the current time"""
+        self.time = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
+
+    def now_unixutc(self) -> float:
+        """Return the interal time"""
+        return self.time
+
+    def change_by(self, seconds: float):
+        """Change the time by a given number of seconds"""
+        self.time += seconds
 
 
 def human_friendly_pairing_code(n_chars: int = 4) -> str:

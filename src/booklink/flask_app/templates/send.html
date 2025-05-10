@@ -18,9 +18,6 @@
     .timer-bar {
         transition: width 0.1s linear;
     }
-    .connection-status {
-        background-color: #F9FAFB;
-    }
 </style>
 {% endblock %}
 
@@ -104,7 +101,7 @@
         <!-- Right column (1/3 width): Status Information -->
         <div class="lg:col-span-1">
             <!-- Connection Status -->
-            <div class="bg-white rounded-lg shadow-md p-5 mb-6 connection-status hidden"> <!-- Hide while not implemented -->
+            <div class="bg-white rounded-lg shadow-md p-5 mb-6">
                 <h3 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
                     <svg class="h-4 w-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
@@ -112,28 +109,14 @@
                     Connection Status
                 </h3>
 
-                <div id="connected-status" class="{% if not is_connected %}hidden{% endif %}">
-                    <div class="flex items-center mb-4">
-                        <div class="flex-shrink-0 h-3 w-3 rounded-full bg-indigo-500 mr-2"></div>
-                        <p class="text-sm font-medium text-gray-900">Connected</p>
-                    </div>
-
-                    <div class="space-y-3">
-                        <div>
-                            <p class="text-xs text-gray-500 mb-1">Device</p>
-                            <p class="text-sm text-gray-900" id="device-name">{{ name }}</p>
-                        </div>
-                    </div>
-                </div>
-
                 <div>
                     <div id="for-status-disconnected" class="flex items-center p-4 rounded-lg bg-gray-50 hidden">
                         <div class="flex-shrink-0 h-3 w-3 rounded-full bg-amber-500 mr-2 animate-pulse"></div>
                         <p class="text-sm text-gray-800">Waiting for device connection...</p>
                     </div>
-                    <div id="for-status-connected" class="flex items-center p-4 rounded-lg bg-gray-50">
-                        <div class="flex-shrink-0 h-3 w-3 rounded-full bg-indigo-500 mr-2"></div>
-                        <p class="text-sm text-gray-800">Connection live</p>
+                    <div id="for-status-connected" class="flex items-center p-4 rounded-lg bg-green-50">
+                        <div class="flex-shrink-0 h-3 w-3 rounded-full bg-green-500 mr-2"></div>
+                        <p class="text-sm text-gray-800" id="online-clients">Connection live</p>
                     </div>
                     <div class="mt-4 text-xs text-center text-gray-500">
                         <p>Open the receiver page on your other device</p>
@@ -142,7 +125,7 @@
             </div>
 
             <!-- Help/Information Panel -->
-            <div class="bg-white rounded-lg shadow-md p-5">
+            <div class="bg-white rounded-lg shadow-md p-5 mb-6">
                 <h3 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
                     <svg class="h-4 w-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -393,7 +376,7 @@
                         progressText.textContent = 'Complete';
 
                         // Refresh the files list
-                        fetchFiles();
+                        fetchStatus();
 
                         // Remove the file entry after 1.5 seconds
                         setTimeout(function() {
@@ -425,14 +408,25 @@
             });
         });
 
+        function displayOnlineClients(clients) {
+            const onlineClientsContainer = document.getElementById('online-clients');
+
+            if (!clients || clients.length === 0) {
+                onlineClientsContainer.innerHTML = 'No devices online';
+                return;
+            }
+
+            onlineClientsContainer.innerHTML = clients.length + " device(s) online";
+        }
+
         // Fetch files function
-        function fetchFiles() {
+        function fetchStatus() {
             if (!config.channelId || !config.clientId || !config.token) {
                 noFilesMessage.textContent = 'Connection information is missing';
                 return;
             }
 
-            const filesUrl = `/api/files/${config.channelId}/${config.clientId}?token=${config.token}`;
+            const filesUrl = `/api/status/${config.channelId}/${config.clientId}?token=${config.token}`;
 
             fetch(filesUrl)
                 .then(response => {
@@ -445,14 +439,18 @@
                     // Clear existing list
                     filesList.innerHTML = '';
 
-                    if (data.length === 0) {
+                    onlineClients = data["online_clients"] || [];
+                    displayOnlineClients(onlineClients);
+
+                    files = data["files"] || [];
+                    if (files.length === 0) {
                         noFilesMessage.textContent = 'No files available';
                         noFilesMessage.classList.remove('hidden');
                     } else {
                         noFilesMessage.classList.add('hidden');
 
                         // Add each file to the list
-                        data.forEach(file => {
+                        files.forEach(file => {
                             const li = document.createElement('li');
                             li.className = 'py-3 flex justify-between items-center hover:bg-gray-50';
                             const url = `/${file.name}?channel_id=${config.channelId}&client_id=${config.clientId}&token=${config.token}&file_id=${file.id}`;
@@ -579,7 +577,7 @@
             })
             .then(data => {
                 // Refresh the file list
-                fetchFiles();
+                fetchStatus();
             })
             .catch(error => {
                 console.error('Error deleting file:', error);
@@ -590,10 +588,10 @@
         // Start polling for files
         function startPolling() {
             // Initial fetch
-            fetchFiles();
+            fetchStatus();
 
             // Set up polling every 10 seconds
-            pollingTimer = setInterval(fetchFiles, config.filePollInterval * 1000);
+            pollingTimer = setInterval(fetchStatus, config.filePollInterval * 1000);
         }
 
         // Stop polling
@@ -604,7 +602,7 @@
         }
 
         // Refresh button handler
-        refreshFilesBtn.addEventListener('click', fetchFiles);
+        refreshFilesBtn.addEventListener('click', fetchStatus);
 
         // Initialize
         if (config.channelId && config.clientId) {

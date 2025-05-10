@@ -119,13 +119,17 @@ def delete_file(channel_id, client_id, file_id):
     return {"message": "File deleted successfully"}, 200
 
 
-@bp.route("/api/files/<channel_id>/<client_id>")
-def get_files(channel_id, client_id):
-    """Get all files for a channel"""
+@bp.route("/api/status/<channel_id>/<client_id>")
+def poll_channel_status(channel_id, client_id):
+    """Get status for a channel, such as the list of files.
+
+    Polling this route frequently enough keeps the client status online.
+    """
 
     files = app_service().get_files_for_channel(channel_id, client_id, token_arg())
+    online_clients = app_service().update_and_get_online_clients(channel_id, client_id, token_arg())
 
-    return [
+    files_description = [
         {
             "name": f.name,
             "size": f.size,
@@ -136,6 +140,10 @@ def get_files(channel_id, client_id):
         }
         for f in files
     ]
+    return {
+        "files": files_description,
+        "online_clients": list(online_clients),
+    }
 
 
 @bp.route("/<file_name>")

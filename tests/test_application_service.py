@@ -1,3 +1,8 @@
+"""Integration tests for the application service.
+
+The component logic is supposed to be tested in isolation.
+"""
+
 import io
 from typing import Generator
 
@@ -133,3 +138,21 @@ class TestApplicationService:
         file = app.get_file(channel_for_b.id, client_b.id, channel_for_b.token, file_id)
         assert file.name == "test.epub"
         assert file.data.read() == b"test_file_content"
+
+    def test_update_and_get_online_clients(self, app: ApplicationService):
+        """Test updating and getting online clients"""
+        client_a = app.new_client("Alice")
+        client_b = app.new_client("Bob")
+
+        channel_from_a = app.new_channel_using_code(
+            client_a.id, client_a.token, client_b.pairing_code
+        )
+        channel_for_b = app.channels_for_client(client_b.id, client_b.token)[0]
+
+        app.update_and_get_online_clients(channel_from_a.id, client_a.id, channel_from_a.token)
+        online_clients = app.update_and_get_online_clients(
+            channel_for_b.id, client_b.id, channel_for_b.token
+        )
+
+        assert len(online_clients) == 2
+        assert online_clients == {client_a.id, client_b.id}
