@@ -30,5 +30,9 @@ jobs:
         pip install -e ".[dev]"
 
     - name: Test with pytest
-      run: |
-        python -m pytest -xvs
+      run: >
+        python -m pytest
+        --exitfirst
+        --capture=no
+        --verbose
+        --cov=src
